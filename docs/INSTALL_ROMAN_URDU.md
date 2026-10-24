@@ -2,11 +2,19 @@
 
 Yeh guide Windows 10/11, 64-bit Python 3.11+, CPU-only aur 4 GB RAM ke liye hai. Docker, Redis, Postgres, GPU ya paid API zaroori nahi. Source ZIP se install ke liye Git bhi zaroori nahi.
 
-> **Evidence boundary:** is source par Linux automated tests aur clean-wheel acceptance pass hain. Real Windows Credential Locker, Chromium login aur physical mouse/keyboard acceptance aapke laptop par neeche diye steps se alag verify karni hai. UAF 0.1.0 alpha hai.
+> **Evidence boundary:** is source par Linux automated tests aur clean-wheel acceptance pass hain. Aapke Windows Python/doctor/Credential Locker onboarding ki user-reported partial evidence maujood hai, lekin live Gemini generation abhi successful nahi hui. Naye dashboard, microphone, Chromium login aur physical mouse/keyboard acceptance alag verify karni hai. UAF 0.1.0 alpha hai.
+
+## Sab se easy: one-click company dashboard
+
+Reviewed source folder mein **`Start-UAF.cmd`** double-click karein. Launcher local `.venv`, zaroori packages, optional Chromium aur `init`/`doctor` checks tayyar karke private local dashboard kholta hai. Pehli run par internet se packages download ho sakte hain; admin PowerShell ya global pip install zaroori nahi.
+
+Browser mein sirf `127.0.0.1`/`::1` wali exact private URL par Gemini API key paste karein aur current official free-tier confirmation par **Confirm free tier, save key & start** dabayein. UAF official model discovery, OS vault setup, ek bounded live test aur real three-step startup DAG karega: local inventory, workspace names/contents ke baghair orchestration worker+reviewer brief (2 model calls), aur quality acceptance record. Provider fail ho to `ready` nahi dikhega; error/cooldown parhkar **Start / retry factory** use karein, blind repeat nahi.
+
+Voice ke liye **Push to talk** use karein. Pehli preference on-device recognition hai; supported browser language model download kar sakta hai. Agar local speech available na ho to remote/browser-vendor processing ki explicit permission ke baghair mic start nahi hogi. Text commands (`status`, `start factory`, `confirm start factory`) hamesha fallback hain. Voice se API key ya R2/R3 approval accept nahi hota. Full detail: [Dashboard guide](DASHBOARD.md). Neeche manual installation alternative hai.
 
 ## 1. Source ZIP download aur extract karein
 
-1. Provided `UAF-0.1.0-alpha-windows-source.zip` ya reviewed GitHub branch ZIP download karein.
+1. Latest reviewed branch ZIP download karein: `https://github.com/shaahanikhaan/agentfactory/archive/refs/heads/arena/9a06efb0-agentfactory.zip` (ya provided `UAF-0.1.0-alpha-windows-source.zip` use karein).
 2. ZIP par right-click karke **Extract All** select karein aur ise `Documents` mein extract karein.
 3. Provided ZIP mein `UAF-0.1.0-alpha` folder kholein. GitHub branch ZIP ka folder naam `agentfactory-arena-9a06efb0-agentfactory` ho sakta hai. Woh directory choose karein jahan `pyproject.toml` aur `src` majood hon.
 4. Us folder mein address bar mein `powershell` type karke Enter dabayein, ya PowerShell mein us path par `cd` karein.
@@ -96,7 +104,7 @@ $workspace = Join-Path $env:USERPROFILE "Documents\UAFWorkspace"
 & $uaf capabilities --json
 ```
 
-Config, SQLite DB, backups aur browser profile default taur par stable local `%LOCALAPPDATA%\UltimateAgentFactory` mein rehte hain. Active DB/profile ko disconnect hone wale USB drive par na rakhein.
+Config, SQLite DB, backups aur browser profile default taur par stable local `%LOCALAPPDATA%\UltimateAgentFactory` mein rehte hain. Active DB/profile ko disconnect hone wale USB drive par na rakhein. `doctor` ka `ok:false` ya exit code `2` aaye to launcher ka rukna expected safety behavior hai; JSON `checks` mein failed item dekhein, usay fix karke command dobara chalayein.
 
 ## 8. API key ke baghair offline test karein
 

@@ -2,9 +2,9 @@
 
 **A local-first, durable, policy-enforced agent runtime — not a larger system prompt.**
 
-UAF turns goals into persisted task contracts, immutable agent-team DAGs, bounded ReAct tool loops, governed effects, review evidence, and resumable SQLite timelines. Reproducible evaluation compares real behavior against fixed baselines. The core uses only the Python standard library. It works offline without API keys, never pretends that deterministic work was cloud AI, and has no paid fallback. Optional slices add one-Gemini-key OS-vault onboarding, a dedicated visible browser, and approval-gated Windows mouse/keyboard batches.
+UAF turns goals into persisted task contracts, immutable agent-team DAGs, bounded ReAct tool loops, governed effects, review evidence, and resumable SQLite timelines. Reproducible evaluation compares real behavior against fixed baselines. The core uses only the Python standard library. It works offline without API keys, never pretends that deterministic work was cloud AI, and has no paid fallback. Optional slices add one-Gemini-key OS-vault onboarding, a loopback company dashboard with voice/text commands, a dedicated visible browser, and approval-gated Windows mouse/keyboard batches.
 
-> **Status: 0.1.0 alpha.** The supported interface is the CLI. Linux execution evidence is recorded in [Verification](docs/VERIFICATION.md); Windows 10/11 acceptance still needs to run on Windows. See the truthful [capability matrix](docs/CAPABILITIES.md) before relying on a feature.
+> **Status: 0.1.0 alpha.** The CLI and loopback dashboard are supported interfaces. Linux execution evidence is recorded in [Verification](docs/VERIFICATION.md); user-reported Windows onboarding is partial evidence, not completed Windows/dashboard/microphone acceptance. See the truthful [capability matrix](docs/CAPABILITIES.md) before relying on a feature.
 
 ## Why this architecture
 
@@ -26,7 +26,13 @@ The “factory” is a reusable execution and governance kernel. It does **not**
 
 Requires **Python 3.11+**. No Docker, database server, Redis, vector database, GPU, or paid account is required.
 
-### Windows PowerShell
+### Windows one-click company dashboard
+
+From a reviewed source checkout/ZIP, double-click **`Start-UAF.cmd`**. The launcher prepares a local `.venv`, optional computer-use dependencies/Chromium, and real `init`/`doctor` checks before opening the private loopback dashboard. First-run dependency downloads require internet; no admin shell or global package installation is used.
+
+In the local page, paste one Gemini API key and explicitly confirm the linked current free-tier terms. UAF then performs official discovery, reviewed-model selection, OS-vault storage, one bounded live readiness request, and an idempotent three-step company startup DAG with one orchestration worker and one reviewer call. Voice is optional push-to-talk with text fallback; it never accepts/echoes credential-like commands or approves R2/R3 actions—still never speak a key into a microphone. See [Dashboard and voice](docs/DASHBOARD.md) for security, audio-processing disclosure, commands, and recovery.
+
+### Windows PowerShell (manual alternative)
 
 ```powershell
 py -3.11 -m venv .venv
@@ -55,6 +61,15 @@ uaf --home ./uaf-home init --workspace ./demo-workspace
 Keep the database/config home on stable local storage. A workspace on removable storage is supported, but writes fail closed when that workspace is disconnected.
 
 For complete first-time laptop installation, optional extras, Gemini onboarding, and real Windows acceptance steps, follow [Windows installation](docs/WINDOWS.md) or the [Roman Urdu laptop guide](docs/INSTALL_ROMAN_URDU.md). For browser/desktop actions and recovery, follow [Computer use](docs/COMPUTER_USE.md).
+
+## Open the company dashboard
+
+```bash
+uaf dashboard
+# or: uaf dashboard --no-open --port 8766
+```
+
+The dashboard shows real doctor/provider/factory evidence, supports one-key setup and explicit start/retry, and uses a random per-launch capability with strict Host/Origin checks. Credential writes require literal loopback. Startup executes reliability inventory, an orchestration worker/reviewer brief with no workspace filenames or contents, and a quality acceptance record. Department cards default to actual execution evidence; an opt-in toggle reveals other governed capabilities without presenting them as active staff. The separate live diagnostic and two startup model calls are honestly labelled and bounded.
 
 ## Run real offline work
 
@@ -121,6 +136,18 @@ uaf task run <task-id> --json
 
 `workspace.delete` is R3: the first run pauses for approval, `uaf approval list` shows the exact destination and payload digest, and only the matching approval permits resume. A pre-action backup is retained for reversible recovery.
 
+## Real repository evidence and governed experience
+
+```bash
+uaf task add "Map the Python repository" --kind tool --tool workspace.python_map \
+  --arguments '{"path":".","limit":40}' --json
+uaf task run <task-id> --json
+uaf memory list --type task --json
+uaf memory approve <experience-memory-id> --json
+```
+
+`workspace.python_map` uses the Python standard-library AST to return bounded imports, classes, functions, hashes, and syntax-error evidence. It never executes source code and is not a JavaScript/parser or sandbox claim. Succeeded/failed tasks also create idempotent local experience records without model output. They remain pending until human approval; only approved non-private records enter future worker/ReAct context as untrusted historical evidence. Privacy deletion is not undone by task replay. The dashboard exposes the same review flow on loopback and hides unused department capabilities by default.
+
 ## One Gemini key and governed computer use
 
 Install the optional slices and run the guided wizard:
@@ -134,9 +161,9 @@ Install the optional slices and run the guided wizard:
 & $uaf provider test gemini --json
 ```
 
-The wizard uses official model discovery, a hidden key prompt, an approved OS credential vault, and explicit current free-tier/network confirmations. One Gemini key is sufficient for built-in Gemini cloud roles; no other AI-provider setup is required. `provider test --live` is a separate explicit generation request.
+The wizard uses official model discovery, a hidden key prompt, an approved OS credential vault, and explicit current free-tier/network confirmations. One Gemini key is sufficient for built-in Gemini cloud roles; no other AI-provider setup is required. `provider test --live` is a separate explicit generation request. The dashboard combines those steps after its own explicit free-tier/start confirmation and requires live readiness before reporting factory readiness.
 
-Browser/desktop features are disabled until explicitly configured. The browser uses a visible dedicated UAF profile, exact domain allowlists, bounded redacted snapshots, and digest-bound R2/R3 actions. Desktop batches are Windows-only, exact-window/focus bound, ASCII-limited, fail-safe enabled, and R3 approved. Neither is an OS sandbox. Direct chat API connectors, voice, desktop vision, and Unicode desktop input are not claimed.
+Browser/desktop features are disabled until explicitly configured. The browser uses a visible dedicated UAF profile, exact domain allowlists, bounded redacted snapshots, and digest-bound R2/R3 actions. Desktop batches are Windows-only, exact-window/focus bound, ASCII-limited, fail-safe enabled, and R3 approved. Neither is an OS sandbox. Dashboard voice is optional browser push-to-talk with on-device preference and explicit vendor-processing consent; direct chat API connectors, native desktop voice/vision, and Unicode desktop input are not claimed.
 
 See the [complete computer-use guide](docs/COMPUTER_USE.md) for manual login, chat-on-behalf rules, exact action payloads, approval resume, and uncertain-effect reconciliation.
 
@@ -189,7 +216,7 @@ python -m ruff check src tests scripts
 python -m pip_audit --progress-spinner off
 ```
 
-Current checkout evidence: **145 tests and 48 subtests passed** with optional MCP and computer-use Python packages installed, including a real MCP stdio initialize/discover/call/shutdown scenario and fake-driver browser/desktop/vault coverage. Compile and Ruff are clean, and the audited environment reported no known vulnerabilities. A clean no-dependency wheel passed nine-tool registration, disabled computer-use fail-closed checks, the packaged two-step offline DAG, and eight-case evaluation/baseline acceptance. These are reproducible checks, not a proof against unknown vulnerabilities. No real cloud request, browser account session, OS-vault secret write, physical desktop input, or external message was made; core-only environments explicitly skip the MCP protocol integration test.
+Current checkout evidence: **177 tests and 57 subtests passed** with optional MCP and computer-use Python packages installed, including real loopback dashboard HTTP tests, a real MCP stdio initialize/discover/call/shutdown scenario, and fake-driver browser/desktop/vault/provider coverage. Compile and Ruff are clean, and the audited environment reported no known vulnerabilities. A clean no-dependency wheel passed three packaged dashboard assets, two blueprints, ten-tool registration, the two-step offline DAG, three-step company DAG with memory/privacy exclusion, real AST mapping, governed experience, and eight-case evaluation/baseline acceptance. These are reproducible checks, not a proof against unknown vulnerabilities. The automated Linux gates made no real cloud request, browser account/microphone session, OS-vault secret write, physical desktop input, or external message; core-only environments explicitly skip the MCP protocol integration test. User-reported Windows onboarding and failed live Gemini attempts are recorded separately in [Verification](docs/VERIFICATION.md), not presented as successful live/Windows acceptance.
 
 ## Documentation
 
@@ -197,6 +224,7 @@ Current checkout evidence: **145 tests and 48 subtests passed** with optional MC
 - [Agent blueprints, durable DAGs, and governed ReAct](docs/FACTORY.md)
 - [Reproducible evaluation and regression gates](docs/EVALUATION.md)
 - [CLI and operations runbook](docs/OPERATIONS.md)
+- [Company dashboard, one-key setup, and voice](docs/DASHBOARD.md)
 - [Security and threat model](docs/SECURITY.md)
 - [Provider setup and quota policy](docs/PROVIDERS.md)
 - [Capability matrix](docs/CAPABILITIES.md)
@@ -204,6 +232,7 @@ Current checkout evidence: **145 tests and 48 subtests passed** with optional MC
 - [One-key onboarding and governed computer use](docs/COMPUTER_USE.md)
 - [Complete Windows installation and removable-storage notes](docs/WINDOWS.md)
 - [Research register and project comparisons](docs/RESEARCH.md)
+- [External repository evidence and integration decisions](docs/EXTERNAL_RESEARCH.md)
 - [Release checklist](docs/RELEASE_CHECKLIST.md)
 - [Security disclosure policy](SECURITY.md)
 
@@ -215,7 +244,7 @@ Current checkout evidence: **145 tests and 48 subtests passed** with optional MC
 - The packaged evaluation held-out split is public and the default suite measures control-plane behavior, not general model intelligence.
 - Research fetch is a prototype. DNS rebinding and hostile content remain residual risks; do not point it at sensitive network environments without an egress-controlled resolver/proxy.
 - Candidate self-update tests execute code on the host only after an explicit untrusted-code flag. A Git worktree is not an OS sandbox. Automatic merge, push, deployment, and permission expansion are not implemented.
-- No arbitrary shell tool is registered. Optional browser/desktop adapters are bounded and approval-gated, but host GUI control is not sandboxed or risk-free. Direct chat connectors, automatic account/terms acceptance, voice, desktop vision, Unicode desktop input, unattended publishing/deployment, and a dashboard are not included. External browser/native-app actions require explicit approval and have no delivery guarantee.
+- No arbitrary shell tool is registered. Optional browser/desktop adapters are bounded and approval-gated, but host GUI control is not sandboxed or risk-free. Direct chat connectors, automatic account/terms acceptance, native desktop voice/vision, Unicode desktop input, and unattended publishing/deployment are not included. Dashboard voice is optional and browser-dependent; external browser/native-app actions require explicit approval and have no delivery guarantee.
 - A benchmark measures the stated local scenario on the stated machine; it is not a universal “1000×” claim.
 
 ## License

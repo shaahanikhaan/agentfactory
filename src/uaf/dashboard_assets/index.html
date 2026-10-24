@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>Ultimate Agent Factory</title>
+  <link rel="stylesheet" href="/styles.css">
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <header class="topbar">
+    <div>
+      <p class="eyebrow">LOCAL COMPANY CONTROL</p>
+      <h1>Ultimate Agent Factory</h1>
+    </div>
+    <div class="header-actions">
+      <span id="ready-pill" class="pill neutral">Checking local runtime…</span>
+      <button id="refresh-button" class="icon-button" type="button" title="Refresh status" aria-label="Refresh status">↻</button>
+    </div>
+  </header>
+
+  <main>
+    <section id="fatal-banner" class="banner danger hidden" role="alert"></section>
+    <section id="message-banner" class="banner hidden" aria-live="polite"></section>
+
+    <section class="hero panel">
+      <div class="hero-copy">
+        <p class="eyebrow">ONE KEY · GOVERNED START</p>
+        <h2>Your factory, ready to work.</h2>
+        <p>Enter a Gemini API key once. UAF discovers official models, stores the key in the OS vault, verifies one live free-tier request, then starts a real three-step company DAG.</p>
+        <div class="hero-actions">
+          <button id="start-button" class="primary" type="button">Start / retry factory</button>
+          <span class="small muted">One live test plus up to two startup model calls. No paid fallback.</span>
+        </div>
+      </div>
+      <ol id="readiness-steps" class="steps" aria-label="Readiness steps">
+        <li data-step="runtime"><span>1</span><div><strong>Local runtime</strong><small>SQLite, workspace, capacity</small></div></li>
+        <li data-step="credential"><span>2</span><div><strong>Official model + vault</strong><small>Discovery and OS credential storage</small></div></li>
+        <li data-step="live"><span>3</span><div><strong>Live readiness</strong><small>Low-thinking bounded diagnostic</small></div></li>
+        <li data-step="factory"><span>4</span><div><strong>Factory DAG</strong><small>Inventory → private brief → acceptance</small></div></li>
+      </ol>
+    </section>
+
+    <div class="grid two">
+      <section class="panel" id="setup-panel">
+        <div class="section-heading">
+          <div><p class="eyebrow">AUTOMATIC SETUP</p><h3>Gemini access</h3></div>
+          <span id="setup-state" class="pill neutral">Not configured</span>
+        </div>
+        <form id="setup-form">
+          <label for="api-key">Gemini API key</label>
+          <div class="key-row">
+            <input id="api-key" name="api_key" type="password" autocomplete="off" spellcheck="false" required placeholder="Paste your key — never saved in browser storage">
+            <button id="reveal-key" class="secondary" type="button" aria-pressed="false">Show</button>
+          </div>
+          <p class="small muted">The key goes only to this local dashboard over loopback. UAF validates official model discovery and writes it to the existing OS credential vault. Voice never accepts credentials.</p>
+          <p class="small muted"><strong>By continuing, you confirm that the automatically selected official model is currently free for your key/project under the linked official pricing terms.</strong> Discovery alone is not treated as free-tier proof; one bounded live request must also succeed. Startup then permits one worker and one reviewer call with fixed prompts containing no workspace names or contents. Official free-tier terms say content may be used to improve provider products.</p>
+          <button id="setup-button" class="primary wide" type="submit">Confirm free tier, save key &amp; start</button>
+        </form>
+        <details class="attestation">
+          <summary>Automatic model policy &amp; free-tier attestation</summary>
+          <p>Preference: Gemini 3.8 Flash → 3.5 Flash-Lite → 3.1 Flash-Lite, only when returned by official discovery and proven by a live request. Gemini 2.5 is not an automatic new-project fallback.</p>
+          <p><a href="https://ai.google.dev/gemini-api/docs/pricing" target="_blank" rel="noopener noreferrer">Official pricing</a> · <a href="https://ai.google.dev/gemini-api/docs/models" target="_blank" rel="noopener noreferrer">Official models</a> · <a href="https://ai.google.dev/gemini-api/terms" target="_blank" rel="noopener noreferrer">Official terms</a></p>
+        </details>
+      </section>
+
+      <section class="panel voice-panel">
+        <div class="section-heading">
+          <div><p class="eyebrow">VOICE + TEXT</p><h3>Factory command</h3></div>
+          <select id="voice-language" aria-label="Voice recognition language">
+            <option value="en-US">English</option>
+            <option value="ur-PK">Urdu</option>
+          </select>
+        </div>
+        <button id="voice-button" class="voice-button" type="button" aria-pressed="false">
+          <span class="mic" aria-hidden="true">●</span>
+          <span id="voice-button-label">Enable microphone</span>
+        </button>
+        <label class="check-row">
+          <input id="local-speech" type="checkbox" checked>
+          <span>Prefer on-device speech recognition when supported</span>
+        </label>
+        <p id="voice-disclosure" class="small muted">Feature detection runs before microphone access. Supported browsers may download an on-device language model after your click. If on-device recognition is unavailable, UAF asks before using browser/vendor speech processing. No continuous listening.</p>
+        <form id="command-form" class="command-row">
+          <label class="sr-only" for="command-input">Text command</label>
+          <input id="command-input" type="text" maxlength="200" placeholder="Try: status, start factory, confirm start factory">
+          <button class="secondary" type="submit">Run</button>
+        </form>
+        <div id="voice-confirmation" class="confirmation hidden">
+          <p>Start requires a separate confirmation for one live test plus up to two startup model calls. Say <strong>“confirm start factory”</strong> or use the button.</p>
+          <button id="voice-confirm-button" class="primary" type="button">Confirm factory start</button>
+        </div>
+        <p id="transcript" class="transcript" aria-live="polite">Voice is off. Text commands always work.</p>
+      </section>
+    </div>
+
+    <section class="panel">
+      <div class="section-heading">
+        <div><p class="eyebrow">EXECUTION MAP</p><h3>Actual department activity</h3></div>
+        <label class="capability-toggle small"><input id="show-capabilities" type="checkbox"> Show unused capabilities</label>
+      </div>
+      <div id="departments" class="department-grid" aria-live="polite"></div>
+      <p class="small muted section-note">Startup executes reliability inventory, an orchestration worker/reviewer brief with no workspace names or contents, and a quality acceptance record through the existing factory service. By default, only departments with actual evidence appear. The toggle reveals other implemented/optional capabilities without presenting them as active staff.</p>
+    </section>
+
+    <div class="grid two">
+      <section class="panel">
+        <div class="section-heading"><div><p class="eyebrow">DURABLE EVIDENCE</p><h3>Latest factory run</h3></div><span id="run-state" class="pill neutral">No run</span></div>
+        <dl id="run-details" class="details"><div><dt>Status</dt><dd>Start the factory to create a real run.</dd></div></dl>
+        <div id="run-timeline" class="run-timeline" aria-label="Durable step activity"></div>
+      </section>
+      <section class="panel">
+        <div class="section-heading"><div><p class="eyebrow">LOCAL DIAGNOSTICS</p><h3>Runtime health</h3></div><span id="doctor-state" class="pill neutral">Checking</span></div>
+        <div id="doctor-details" class="health-list"></div>
+      </section>
+    </div>
+
+    <section class="panel">
+      <div class="section-heading">
+        <div><p class="eyebrow">GOVERNED EXPERIENCE</p><h3>Real task outcomes</h3></div>
+        <span id="experience-state" class="pill neutral">No experience</span>
+      </div>
+      <p class="small muted">Succeeded and failed tasks create bounded local records with no model output. Records stay pending until you approve them here; only approved non-private outcomes can be recalled as untrusted historical context. Voice commands cannot approve memory.</p>
+      <div id="experience-list" class="experience-list" aria-live="polite"></div>
+    </section>
+  </main>
+
+  <footer>
+    <span>Local-first · serial by default · R2/R3 approvals unchanged</span>
+    <span>No paid fallback · no public deployment · no voice approval authority</span>
+  </footer>
+</body>
+</html>

@@ -5,7 +5,7 @@
 UAF is a **deterministic control plane around probabilistic model calls**. A model may propose text inside a bounded worker/reviewer step or one typed ReAct decision; it cannot mutate task/factory state, add DAG nodes, choose arbitrary Python, grant itself a tool, approve an action, or promote a release.
 
 ```text
-CLI / optional MCP stdio
+CLI / loopback dashboard / optional MCP stdio
           |
           v
    typed task contract
@@ -28,7 +28,7 @@ CLI / optional MCP stdio
              SQLite
 ```
 
-All major services share the composition root in `src/uaf/app.py`. The CLI and MCP adapter do not maintain separate parallel state.
+All major services share the composition root in `src/uaf/app.py`. The CLI, loopback dashboard, and MCP adapter do not maintain separate parallel state. The dashboard is a thin stdlib HTTP/browser client over onboarding, provider diagnostics, doctor, and factory services; it has no independent agent runtime or approval path. Browser voice recognition translates a small command set into those same explicit requests and never becomes an authorization principal.
 
 ## 2. Task contract and state machine
 
@@ -91,7 +91,7 @@ Every tool has metadata, version, JSON-schema subset, risk tier, allowed roles, 
 7. Validate output and enforce size limits.
 8. Persist receipt, status, elapsed time, and redacted audit metadata.
 
-The built-in workspace adapter uses confined paths, rejects traversal/absolute/sensitive paths, checks symlinks, writes atomically, verifies postconditions, and backs up overwritten/deleted files. It pauses if the workspace is disconnected rather than redirecting to another drive.
+The built-in workspace adapter uses confined paths, rejects traversal/absolute/sensitive paths, checks symlinks, writes atomically, verifies postconditions, and backs up overwritten/deleted files. It pauses if the workspace is disconnected rather than redirecting to another drive. The R0 `workspace.python_map` adapter walks only confined, non-sensitive Python sources and parses them with the standard-library AST; it returns bounded hashes/imports/symbols and never imports or executes source.
 
 Optional browser/desktop adapters use the same registry, approval, and ledger rather than a separate action path. The browser launches a visible dedicated Playwright profile, restricts public allowlisted HTTPS destinations, and produces bounded redacted element snapshots. Its deterministic snapshot digest and expected label are revalidated before every action, including after approval/process restart. Desktop batches resolve the exact Win32 process/window, enforce focus and bounded declarative actions, and force PyAutoGUI fail-safe on. Neither adapter is an OS sandbox or a direct chat connector.
 
@@ -107,6 +107,8 @@ For a known idempotent local operation, replay can return the recorded result. F
 - **Logs:** rotating local diagnostics, not the source of truth.
 
 Memory supports exact normalized-hash consolidation proposals, dry-run evidence, pre-apply snapshot, idempotent apply, FTS5 search, LIKE fallback, export digest, and privacy deletion that also scrubs revisions and search indexes. Secret-looking content is rejected rather than promoted.
+
+Task experience is a narrower governed layer over that store. Terminal task outcomes are captured idempotently without model output and remain pending. A schema-v4 content-free capture ledger prevents replay duplication and privacy-delete resurrection. Only explicitly human-approved non-private outcomes can be recalled into worker/ReAct prompts, where they are bounded untrusted evidence rather than instructions. Privacy-sensitive blueprints can disable recall with `memory_recall: false`; the built-in company startup does so.
 
 ## 7. Extensions
 

@@ -39,6 +39,17 @@ class ToolTests(FactoryCase):
         read_result = self.app.runner.run(read_task["task_id"])
         self.assertEqual(read_result["result"]["output"]["content"], "hello")
 
+    def test_list_truncation_is_true_only_when_visible_entries_remain(self):
+        for name in ("a.txt", "b.txt"):
+            (self.workspace / name).write_text(name, encoding="utf-8")
+        exact = self.app.workspace.list(limit=2)
+        self.assertEqual(len(exact["entries"]), 2)
+        self.assertFalse(exact["truncated"])
+        (self.workspace / "c.txt").write_text("c", encoding="utf-8")
+        remaining = self.app.workspace.list(limit=2)
+        self.assertEqual(len(remaining["entries"]), 2)
+        self.assertTrue(remaining["truncated"])
+
     def test_path_traversal_absolute_and_sensitive_paths_denied(self):
         for path in ("../outside", "/etc/passwd", "C:\\Windows\\win.ini", ".env", ".git/config"):
             with self.subTest(path=path), self.assertRaises(ValidationError):

@@ -5,7 +5,7 @@ Generated conceptually from `uaf capabilities --json`; the CLI is authoritative 
 | Capability | State | Actual scope / evidence |
 |---|---|---|
 | Core config | `implemented` | Validated portable config, secret rejection, no-spend defaults — `tests/test_config.py` |
-| SQLite durability | `implemented` | Schema v1/v2/v3, WAL, FTS5/fallback, integrity/FK checks — `tests/test_db.py` |
+| SQLite durability | `implemented` | Schema v1/v2/v3/v4, WAL, FTS5/fallback, integrity/FK checks — `tests/test_db.py` |
 | Backup/restore | `implemented` | Online backup, hash/integrity verification, lifeline, restore — `tests/test_backup.py` |
 | Task orchestration | `implemented` | Contracts, dependencies, legal transitions, checkpoints, cancel/resume, bounded revisions — `tests/test_tasks.py`, `tests/test_runner.py` |
 | Offline agent factory | `implemented` | Real deterministic four-role smoke workflow; zero model calls — `tests/test_runner.py` |
@@ -16,7 +16,8 @@ Generated conceptually from `uaf capabilities --json`; the CLI is authoritative 
 | Reproducible evaluation | `implemented` | Eight-case offline suite, custom model/task suites, deterministic scorers, resource metrics, same-suite regression gates — `tests/test_evaluations.py` |
 | One Gemini key onboarding | `implemented_optional` | Official discovery, explicit free confirmation, OS vault and rollback — `tests/test_onboarding.py`, `tests/test_credentials.py`; no live account tested here |
 | Brain pool | `implemented_optional` | Gemini/Groq/OpenRouter/Ollama adapters, free/local eligibility, quotas/cooldowns — `tests/test_providers.py`; live terms unverified here |
-| Workspace tools | `implemented` | Read/list/write/delete, confinement, schemas, approvals, atomic/reversible operations — `tests/test_tools.py` |
+| Workspace tools | `implemented` | Read/list/Python AST map/write/delete, confinement, schemas, approvals, atomic/reversible operations — `tests/test_tools.py`, `tests/test_repository.py` |
+| Governed task experience | `implemented` | Idempotent pending outcomes, sensitive-capture skip, privacy-delete-safe ledger, human-approved non-private untrusted recall — `tests/test_experience.py` |
 | Idempotency | `implemented` | Replay, digest conflicts, uncertain recovery, `effect` reconciliation and resume gating — `tests/test_idempotency.py`, `tests/test_desktop.py` |
 | Durable memory | `implemented` | Provenance, revisions, privacy deletion, FTS/LIKE, export, dry-run/apply consolidation — `tests/test_memory.py` |
 | Skills | `implemented` | Checksummed progressive disclosure — `tests/test_extensions.py` |
@@ -26,12 +27,14 @@ Generated conceptually from `uaf capabilities --json`; the CLI is authoritative 
 | MCP HTTP | `planned` | No HTTP listener |
 | Research fetch | `prototype` | Bounded HTTPS, SSRF checks, provenance/untrusted wrapper — `tests/test_research.py`; DNS rebinding residual risk |
 | Self-update | `prototype` | Trusted-origin check, isolated candidate, gate enforcement — `tests/test_self_update.py`; no automatic rollout |
-| Windows 10/11 acceptance | `planned` | Windows-compatible code and runbook; this checkout's execution evidence is Linux |
-| Local dashboard | `planned` | CLI is the supported interface |
+| Windows 10/11 acceptance | `prototype` | Windows-compatible code/runbook plus user-reported Python 3.11.9, doctor, Credential Locker, and Gemini configuration evidence; full dashboard/mic/desktop/4 GB acceptance remains pending |
+| Local company dashboard | `implemented` | Stdlib serial loopback UI/API, one-key onboarding, live readiness, real idempotent three-step startup DAG with two bounded model calls, per-department execution evidence, opt-in unused capabilities, and loopback-only experience review — `tests/test_dashboard.py`; Windows/browser acceptance pending |
+| One-click Windows launcher | `implemented_optional` | Local venv, pinned bootstrap, optional Chromium, init/doctor gate, dashboard launch — `Start-UAF.cmd`, `scripts/start_factory.py`, `tests/test_bootstrap.py`; target-OS execution pending |
+| Browser voice commands | `implemented_optional` | Permission-based one-utterance Web Speech, on-device preference, explicit vendor-processing consent, text fallback, two-step start — dashboard assets/tests; physical microphone acceptance pending |
 | Browser automation | `implemented_optional` | Visible dedicated profile, domain/SSRF checks, bounded snapshots, digest-bound R2/R3 actions and restart revalidation — `tests/test_browser.py`; real browser/account acceptance pending |
 | Desktop mouse/keyboard | `implemented_optional` | Bounded Windows batches, exact process/window/focus binding, fail-safe, R3 and reconciliation — `tests/test_desktop.py`; physical Windows input untested here |
 | Native chat connectors | `planned` | No direct Slack/WhatsApp/Teams API connector; approved browser/native-app actions only |
-| Desktop vision/voice/Unicode input | `planned` | No measured adapter; desktop typing is printable ASCII only |
+| Native desktop voice/vision/Unicode input | `planned` | Dashboard voice is not a native desktop adapter; desktop typing is printable ASCII only |
 | Arbitrary shell | `planned` / denied | No arbitrary shell tool; do not represent this as a safe shell sandbox |
 
 ## Meaning of states

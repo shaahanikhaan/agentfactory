@@ -408,4 +408,23 @@ CREATE TABLE evaluation_case_results (
 CREATE INDEX idx_evaluation_case_results_case ON evaluation_case_results(case_id, run_id);
 """
 
-MIGRATIONS: list[tuple[int, str]] = [(1, MIGRATION_1), (2, MIGRATION_2), (3, MIGRATION_3)]
+MIGRATION_4 = """
+CREATE TABLE experience_captures (
+    capture_key TEXT PRIMARY KEY,
+    task_id TEXT NOT NULL REFERENCES tasks(task_id) ON DELETE CASCADE,
+    outcome TEXT NOT NULL CHECK (outcome IN ('succeeded','failed')),
+    attempt INTEGER NOT NULL,
+    memory_id TEXT REFERENCES memory_items(memory_id) ON DELETE SET NULL,
+    status TEXT NOT NULL CHECK (status IN ('captured','skipped_sensitive')),
+    created_at TEXT NOT NULL,
+    UNIQUE (task_id, outcome, attempt)
+);
+CREATE INDEX idx_experience_captures_task ON experience_captures(task_id, created_at);
+"""
+
+MIGRATIONS: list[tuple[int, str]] = [
+    (1, MIGRATION_1),
+    (2, MIGRATION_2),
+    (3, MIGRATION_3),
+    (4, MIGRATION_4),
+]

@@ -265,6 +265,14 @@ class ProviderService:
         max_attempts = self.settings.budgets.max_retries + 1
         for spec in candidates:
             while attempts < max_attempts:
+                # The candidate check alone is insufficient: every retry is another real
+                # provider request and must observe the same per-model daily budget.
+                if (
+                    self._daily_calls(spec.provider, spec.model)
+                    >= self.settings.budgets.max_daily_calls
+                ):
+                    errors.append(f"{spec.provider}/{spec.model}: daily_call_budget")
+                    break
                 attempts += 1
                 self._observe_request(spec)
                 try:
@@ -300,13 +308,17 @@ class ProviderService:
             details={"attempts": attempts, "retryable": True},
         )
 
-    def test(self, provider: str, *, live: bool = False) -> dict[str, Any]:
+    def test(
+        self, provider: str, *, model: str | None = None, live: bool = False
+    ) -> dict[str, Any]:
         if provider not in self.settings.providers:
             raise ValidationError(f"Unknown provider: {provider}")
         models = self.settings.providers[provider].get("models", {})
         if not models:
             raise UnavailableError(f"Provider {provider} has no configured model")
-        model = next(iter(models))
+        model = model or next(iter(models))
+        if model not in models:
+            raise ValidationError(f"Provider {provider} has no configured model named {model}")
         spec = self._spec(provider, model, models[model])
         self._validate_eligibility(spec, for_call=live)
         adapter = self.adapters[provider]
@@ -328,7 +340,10 @@ class ProviderService:
                 provider=provider,
                 model=model,
                 max_output_chars=100,
-                max_output_tokens=8,
+                # Thinking tokens share this ceiling on Gemini 3.x. A tiny probe limit can
+                # truncate the answer; low thinking is appropriate for a connectivity check.
+                max_output_tokens=256,
+                metadata=({"thinking_level": "low"} if model == "gemini-3.8-flash" else {}),
                 priority="interactive",
             )
         )

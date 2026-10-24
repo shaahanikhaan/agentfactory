@@ -167,6 +167,26 @@ class OnboardingTests(FactoryCase):
         self.assertFalse(restored.network_allowed)
         self.assertFalse(restored.providers["gemini"]["enabled"])
 
+    def test_previous_credential_is_restored_even_if_config_rollback_also_fails(self):
+        discovered = self.discover()
+        previous_secret = "AIza" + "p" * 32
+        self.vault.set("gemini", previous_secret)
+
+        def failing_save(_settings):
+            raise OSError("persistent config write failure")
+
+        self.app.config.save = failing_save
+        with self.assertRaises(OSError):
+            self.onboarding.complete(
+                self.secret,
+                discovered,
+                model="gemini-test-free",
+                free_confirmed=True,
+                verified_at=date.today().isoformat(),
+            )
+        self.assertEqual(self.vault.get("gemini"), previous_secret)
+        self.assertNotIn(self.secret, self.paths.config.read_text(encoding="utf-8"))
+
 
 if __name__ == "__main__":
     unittest.main()

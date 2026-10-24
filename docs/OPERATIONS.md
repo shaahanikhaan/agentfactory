@@ -1,6 +1,6 @@
 # CLI and operations runbook
 
-All commands support `--json` (before or after the subcommand). `--home PATH` selects an isolated UAF home. Expected failures return exit code 2 with a stable error code; unexpected failures return 1 and write a redacted local log. Ctrl-C returns 130 and preserves committed checkpoints.
+All commands support `--json` (before or after the subcommand). `--home PATH` selects an isolated UAF home. Expected failures return exit code 2 with a stable error code; unexpected failures return 1 and write a redacted local log. `uaf doctor` emits its report and returns 2 when any required check fails, allowing launch scripts to stop reliably. Ctrl-C returns 130 and preserves committed checkpoints.
 
 ## Initialize and inspect
 
@@ -23,6 +23,8 @@ uaf task add "Goal" --kind agent --constraint "Cite actual evidence" --json
 uaf task add "Offline check" --kind smoke --json
 uaf task add "Read a file" --kind tool --tool workspace.read \
   --arguments '{"path":"notes/a.txt"}' --json
+uaf task add "Map Python code" --kind tool --tool workspace.python_map \
+  --arguments '{"path":".","limit":40}' --json
 uaf task list --state queued --json
 uaf task run <task-id> --json
 uaf task run --all --limit 20 --json
@@ -84,6 +86,19 @@ uaf task run <task-id> --json
 
 Review action, canonical payload, destination, risk, and requesting task. Approval is not a blanket tool permission.
 
+## Company dashboard and voice
+
+```bash
+uaf dashboard
+uaf dashboard --no-open --port 8766
+# Explicit non-loopback preview only; credential writes remain disabled:
+uaf dashboard --host 0.0.0.0 --allowed-host dashboard.example --no-open
+```
+
+Open the exact printed URL including its per-launch `#token` fragment. The loopback page combines official discovery, reviewed-model selection, free-tier confirmation, OS-vault setup, one live diagnostic, and the fixed idempotent three-step company-startup DAG (local inventory, privacy-safe worker/reviewer brief, deterministic acceptance). `status`, `start factory`, and `confirm start factory` are available through text and supported browser speech recognition. Voice cannot submit credentials or approve R2/R3 work.
+
+Use `uaf doctor --json`, `uaf provider list --json`, and `uaf factory list --json` for CLI cross-checks. If setup reaches a live-provider failure, configuration may be saved while readiness remains false; do not interpret it as a successful factory start. Refresh before explicit retry. Non-loopback Host exposure is not production remote authentication and is not the recommended credential-setup path. See [Dashboard](DASHBOARD.md).
+
 ## One-key onboarding and computer use
 
 ```bash
@@ -133,6 +148,8 @@ uaf memory delete <memory-id> --yes --json
 ```
 
 New memory is pending unless `--approved` is explicitly supplied. Search defaults to approved entries. Consolidation is dry-run first and creates a snapshot before apply. Export files and backups may contain sensitive data.
+
+Terminal tasks also create pending `task` experience without model output. Review it with `memory list --type task` and explicitly `memory approve` before it can be recalled. Only approved non-private outcomes are used, as untrusted context. Sensitive-looking outcomes are skipped; replay does not duplicate or resurrect deleted experience.
 
 ## Backups and restore
 

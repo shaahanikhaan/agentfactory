@@ -14,6 +14,10 @@ class DiagnosticsTests(FactoryCase):
         report = capability_report()
         states = {entry["state"] for entry in report["capabilities"]}
         self.assertEqual(states, {"implemented", "implemented_optional", "prototype", "planned"})
+        by_id = {entry["id"]: entry for entry in report["capabilities"]}
+        self.assertEqual(by_id["local_dashboard"]["state"], "implemented")
+        self.assertEqual(by_id["browser_voice_commands"]["state"], "implemented_optional")
+        self.assertEqual(by_id["one_click_windows_launcher"]["state"], "implemented_optional")
         root = Path(__file__).parent.parent
         for entry in report["capabilities"]:
             if entry["evidence"] and entry["evidence"].startswith(("tests/", "docs/")):
@@ -34,7 +38,7 @@ class DiagnosticsTests(FactoryCase):
         self.assertGreater(result["tasks_per_second"], 0)
         self.assertEqual(self.tasks.counts()["succeeded"], 2)
         status = self.app.diagnostics.status([])
-        self.assertEqual(status["factory"]["blueprints"], 1)
+        self.assertEqual(status["factory"]["blueprints"], 2)
         self.assertEqual(status["evaluation_runs"], 0)
 
 

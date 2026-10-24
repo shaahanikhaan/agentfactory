@@ -124,7 +124,7 @@ class FactoryCase(unittest.TestCase):
             sleep=lambda _: None,
         )
         self.app.providers = service
-        self.app.agents = AgentRuntime(service, self.tasks)
+        self.app.agents = AgentRuntime(service, self.tasks, experience=self.app.experience)
         self.app.runner.agents = self.app.agents
         return adapter
 

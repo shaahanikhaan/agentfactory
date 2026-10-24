@@ -1,0 +1,85 @@
+{
+  "name": "company-startup",
+  "version": "1",
+  "description": "Real three-step company startup: reliability inventory, a privacy-bounded orchestration worker/reviewer brief, and quality acceptance recording. No workspace names or contents are sent to the model.",
+  "input_schema": {
+    "type": "object",
+    "required": ["path", "limit"],
+    "additionalProperties": false,
+    "properties": {
+      "path": {"type": "string", "default": ".", "maxLength": 500},
+      "limit": {"type": "integer", "minimum": 1, "maximum": 200, "default": 50}
+    }
+  },
+  "defaults": {
+    "department": "orchestration",
+    "priority": "normal",
+    "constraints": [
+      "Keep local evidence inside the configured workspace",
+      "Planning text is not authorization to perform actions",
+      "Do not send workspace file names or contents to the model"
+    ],
+    "budget": {"max_output_chars": 2000}
+  },
+  "agents": [
+    {
+      "agent_id": "reliability-inventory",
+      "name": "Reliability workspace inventory",
+      "kind": "tool",
+      "department": "reliability",
+      "allowed_tools": ["workspace.list"],
+      "risk_tier": "R0"
+    },
+    {
+      "agent_id": "orchestration-planner",
+      "name": "Orchestration startup planner and independent reviewer",
+      "kind": "agent",
+      "department": "orchestration",
+      "instructions": "Prepare a concise, practical startup brief for the stated company goal. Use only the fixed privacy-safe context. Separate verified local facts from recommendations and uncertainties. Do not invent execution, sources, tools, credentials, or department activity. You have no tools in this call.",
+      "budget": {"max_output_chars": 2000},
+      "risk_tier": "R0"
+    },
+    {
+      "agent_id": "quality-acceptance-recorder",
+      "name": "Quality durable acceptance recorder",
+      "kind": "smoke",
+      "department": "quality",
+      "risk_tier": "R0"
+    }
+  ],
+  "steps": [
+    {
+      "step_id": "inventory",
+      "agent_id": "reliability-inventory",
+      "goal": "Inventory the configured workspace for {{ goal }}",
+      "input": {
+        "tool": "workspace.list",
+        "arguments": {
+          "path": "{{ inputs.path }}",
+          "limit": "{{ inputs.limit }}"
+        }
+      }
+    },
+    {
+      "step_id": "operations-brief",
+      "agent_id": "orchestration-planner",
+      "goal": "Prepare a bounded company startup brief for {{ goal }}",
+      "depends_on": ["inventory"],
+      "input": {
+        "memory_recall": false,
+        "context": {
+          "verified_fact": "The separate local inventory step completed; its file names, entries, and contents are deliberately not included in this model context.",
+          "planning_scope": "Provide a generic bounded startup brief for the stated goal. Recommendations are not executed actions.",
+          "privacy_boundary": "No workspace names, file names, file contents, credentials, memory records, or personal data were supplied."
+        }
+      }
+    },
+    {
+      "step_id": "acceptance-record",
+      "agent_id": "quality-acceptance-recorder",
+      "goal": "Record durable acceptance of {{ goal }} without claiming additional execution",
+      "depends_on": ["operations-brief"]
+    }
+  ],
+  "output": {"from": "operations-brief"}
+}

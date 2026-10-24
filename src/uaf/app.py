@@ -13,6 +13,7 @@ from uaf.db import Database
 from uaf.desktop import DesktopService, desktop_tool
 from uaf.diagnostics import Diagnostics
 from uaf.evaluations import EvaluationService
+from uaf.experience import ExperienceService
 from uaf.factory import FactoryService
 from uaf.idempotency import IdempotencyLedger
 from uaf.memory import MemoryStore
@@ -55,16 +56,17 @@ class Application:
         for tool in browser_tools(self.browser):
             self.tools.register(tool)
         self.tools.register(desktop_tool(self.desktop))
-        self.providers = ProviderService(
-            self.settings, self.db, credential_store=self.credentials
+        self.providers = ProviderService(self.settings, self.db, credential_store=self.credentials)
+        self.memory = MemoryStore(self.db, self.backups)
+        self.experience = ExperienceService(self.db, self.memory)
+        self.agents = AgentRuntime(self.providers, self.tasks, experience=self.experience)
+        self.runner = TaskRunner(
+            self.db, self.tasks, self.agents, self.tools, experience=self.experience
         )
-        self.agents = AgentRuntime(self.providers, self.tasks)
-        self.runner = TaskRunner(self.db, self.tasks, self.agents, self.tools)
         self.blueprints = BlueprintRegistry(self.db, self.tools)
         self.blueprints.register_builtin()
         self.factory = FactoryService(self.db, self.tasks, self.runner, self.blueprints)
         self.evaluations = EvaluationService(self.db, self.tasks, self.runner, self.workspace)
-        self.memory = MemoryStore(self.db, self.backups)
         self.skills = SkillLibrary(self.db)
         self.skills.register_builtin()
         self.plugins = PluginManager(self.db, paths.plugins)

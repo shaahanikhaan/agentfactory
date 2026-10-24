@@ -19,7 +19,9 @@ class RunnerTests(FactoryCase):
         self.assertEqual(
             [step["role"] for step in steps], ["manager", "supervisor", "worker", "reviewer"]
         )
-        self.assertEqual(len(self.tasks.timeline(task["task_id"])["events"]), 5)
+        events = self.tasks.timeline(task["task_id"])["events"]
+        self.assertEqual(len(events), 6)
+        self.assertEqual(events[-1]["action"], "experience.capture")
 
     def test_cloud_worker_reviewer_success(self):
         adapter = self.install_fake(

@@ -114,6 +114,18 @@ def capability_report() -> dict[str, Any]:
             "tests/test_factory.py",
         ),
         (
+            "task_experience",
+            implemented,
+            "Idempotent pending task outcomes with human-approved non-private recall",
+            "tests/test_experience.py",
+        ),
+        (
+            "python_repository_map",
+            implemented,
+            "Bounded read-only Python AST imports/symbols without code execution",
+            "tests/test_repository.py",
+        ),
+        (
             "governed_react",
             optional,
             "Typed decision/observation checkpoints and policy-enforced tool loops; eligible model required",
@@ -184,11 +196,28 @@ def capability_report() -> dict[str, Any]:
         ),
         (
             "windows_10_11_acceptance",
-            planned,
-            "Windows-compatible implementation; this checkout has only Linux execution evidence",
+            prototype,
+            "Partial user-reported Windows onboarding; full dashboard/mic/desktop/4 GB acceptance pending",
             "docs/WINDOWS.md",
         ),
-        ("local_dashboard", planned, "CLI is the supported interface", None),
+        (
+            "local_dashboard",
+            implemented,
+            "Serial loopback one-key dashboard with live readiness and durable startup evidence",
+            "tests/test_dashboard.py",
+        ),
+        (
+            "one_click_windows_launcher",
+            optional,
+            "Local venv/dependencies/optional Chromium/init/doctor/dashboard; target-OS acceptance pending",
+            "tests/test_bootstrap.py",
+        ),
+        (
+            "browser_voice_commands",
+            optional,
+            "One-utterance local-first browser speech, text fallback, and separate start confirmation",
+            "tests/test_dashboard.py",
+        ),
         (
             "browser_automation",
             optional,

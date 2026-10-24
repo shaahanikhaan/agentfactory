@@ -16,6 +16,7 @@ from uaf.errors import (
     UnavailableError,
     ValidationError,
 )
+from uaf.experience import ExperienceService
 from uaf.models import TaskState, ToolContext
 from uaf.tasks import TaskStore
 from uaf.tools import ToolRegistry
@@ -33,13 +34,34 @@ class TaskRunner:
         tasks: TaskStore,
         agents: AgentRuntime,
         tools: ToolRegistry,
+        *,
+        experience: ExperienceService | None = None,
     ) -> None:
         self.db = db
         self.tasks = tasks
         self.agents = agents
         self.tools = tools
+        self.experience = experience
 
     def run(self, task_id: str) -> dict[str, Any]:
+        result = self._run(task_id)
+        if self.experience is not None and result["state"] in {"succeeded", "failed"}:
+            try:
+                self.experience.capture_task(result)
+            except UAFError as exc:
+                # Auxiliary learning must not rewrite a terminal task outcome.
+                self.db.audit(
+                    "experience.capture_failed",
+                    actor="runtime",
+                    role="runtime",
+                    object_type="task",
+                    object_id=task_id,
+                    decision="capture_failed",
+                    metadata={"code": exc.code},
+                )
+        return result
+
+    def _run(self, task_id: str) -> dict[str, Any]:
         task = self.tasks.require(task_id)
         state = TaskState(task["state"])
         if state == TaskState.SUCCEEDED:
@@ -398,7 +420,7 @@ class TaskRunner:
             return current
         code = exc.code if isinstance(exc, UAFError) else type(exc).__name__
         error = {"code": code, "message": str(exc)[:2000], "type": type(exc).__name__}
-        if TaskState.FAILED not in {
+        if state not in {
             TaskState.PLANNING,
             TaskState.RUNNING,
             TaskState.VERIFYING,

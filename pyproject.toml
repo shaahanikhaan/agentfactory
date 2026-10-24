@@ -59,6 +59,9 @@ uaf = [
   "data/skills/*/*.json",
   "data/evals/*.json",
   "data/blueprints/*.json",
+  "dashboard_assets/*.html",
+  "dashboard_assets/*.js",
+  "dashboard_assets/*.css",
 ]
 
 [tool.pytest.ini_options]

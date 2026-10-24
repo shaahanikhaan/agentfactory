@@ -12,6 +12,7 @@ from uaf.errors import SideEffectError, UAFError, ValidationError
 from uaf.idempotency import IdempotencyLedger
 from uaf.models import RiskTier, ToolContext, ToolResult
 from uaf.policy import PolicyEngine
+from uaf.repository import PythonRepositoryMap
 from uaf.util import canonical_json, new_id, payload_digest, redact_data, utc_now
 from uaf.workspace import Workspace
 
@@ -290,6 +291,39 @@ class WorkspaceListTool:
         )
 
 
+class WorkspacePythonMapTool:
+    def __init__(self, workspace: Workspace) -> None:
+        self.mapper = PythonRepositoryMap(workspace)
+
+    def metadata(self) -> ToolMetadata:
+        return ToolMetadata(
+            name="workspace.python_map",
+            version="1",
+            description="Map bounded Python imports and symbols with stdlib AST; never executes code",
+            input_schema={
+                "type": "object",
+                "additionalProperties": False,
+                "properties": {
+                    "path": {"type": "string", "default": ".", "maxLength": 500},
+                    "limit": {"type": "integer", "minimum": 1, "maximum": 100},
+                },
+            },
+            output_schema={
+                "type": "object",
+                "required": ["path", "language", "modules", "truncated", "code_executed"],
+            },
+            risk_tier=RiskTier.R0,
+            allowed_roles=frozenset({"worker", "supervisor", "reviewer"}),
+        )
+
+    def execute(self, context: ToolContext, payload: dict[str, Any]) -> ToolResult:
+        output = self.mapper.build(payload.get("path", "."), limit=payload.get("limit", 40))
+        return ToolResult(
+            output=output,
+            evidence={"parser": "stdlib_ast", "code_executed": False},
+        )
+
+
 class WorkspaceWriteTool:
     def __init__(self, workspace: Workspace) -> None:
         self.workspace = workspace
@@ -357,6 +391,7 @@ def build_tool_registry(
 ) -> ToolRegistry:
     registry = ToolRegistry(db, approvals, ledger, max_output_chars=max_output_chars)
     registry.register(WorkspaceListTool(workspace))
+    registry.register(WorkspacePythonMapTool(workspace))
     registry.register(WorkspaceReadTool(workspace))
     registry.register(WorkspaceWriteTool(workspace))
     registry.register(WorkspaceDeleteTool(workspace))

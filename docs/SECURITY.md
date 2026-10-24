@@ -32,15 +32,18 @@ This is defense in depth, not a claim of complete sandboxing or invulnerability.
 | Model/user → browser | Dedicated visible profile, public allowlisted HTTPS, bounded redacted snapshots, digest/label revalidation, R2/R3 exact approval |
 | Model/user → desktop | Explicit executable allowlist, exact Win32 process/title, focus checks, bounded actions/text, mandatory fail-safe, R3 approval |
 | OS vault → provider | Backend allowlist, hidden onboarding prompt, header-only credential use, no config/SQLite secret storage |
+| Browser → local dashboard | Exact Host allowlist, per-launch header capability, Origin/Fetch-Site checks, 16 KiB JSON, CSP/no-store, no CORS, serial requests |
+| Voice → dashboard commands | Permission-based one utterance, on-device preference/explicit vendor-processing consent, text fallback, separate start confirmation, no R2/R3 authority |
+| Dashboard → onboarding/factory | Same governed services as CLI; literal-loopback credential writes and factory start; live readiness before success; fixed R0 idempotent startup DAG |
 
 ## Risk tiers in this build
 
-- **R0:** bounded local reads/listing, deterministic checks, and allowlisted browser navigation/snapshots.
+- **R0:** bounded local reads/listing, non-executing Python AST maps, deterministic checks, and allowlisted browser navigation/snapshots.
 - **R1:** reversible local writes. These still pass schema, allowlist, role, and idempotency controls.
 - **R2:** externally consequential or sensitive operations such as browser text entry; exact payload/destination approval required.
 - **R3:** destructive/irreversible-capable operations such as workspace delete, browser click, and desktop input; exact approval required. Workspace delete also creates a pre-action backup.
 
-Nine narrow tools are registered in the current composition: four workspace, four browser, and one desktop batch tool. Browser/desktop execution remains disabled until explicitly configured and their optional dependencies are available. There is no direct messaging/publishing API connector; governed browser/native-app actions can still have external effects and require approval.
+Ten narrow tools are registered in the current composition: five workspace (including read-only Python AST mapping), four browser, and one desktop batch tool. Browser/desktop execution remains disabled until explicitly configured and their optional dependencies are available. There is no direct messaging/publishing API connector; governed browser/native-app actions can still have external effects and require approval.
 
 ## Prompt-injection controls
 
@@ -48,6 +51,7 @@ Nine narrow tools are registered in the current composition: four workspace, fou
 - Common chat-template role tokens are removed from fetched/model-bound content.
 - Script/style/template content is not included by the research text extractor.
 - Tool permissions do not come from prompts, memory, skill text, blueprint instructions, upstream context, observations, or fetched content.
+- Task experience captures no model output and starts pending. Only human-approved non-private records can be recalled, always bounded and wrapped as untrusted historical data; company startup explicitly disables recall.
 - ReAct decisions cannot add tools or DAG nodes; malformed decisions, disallowed tools, and decision/tool budgets fail closed.
 - Reviewer output must match a small verdict contract; it cannot mark arbitrary tool effects successful.
 - Plugins and candidates cannot introduce arbitrary model-generated execution.
@@ -82,6 +86,18 @@ The idempotency ledger stores payload digest, destination, attempt count, state,
 - Desktop action counts, coordinates, ASCII text, and waits are bounded; PyAutoGUI fail-safe is forced on. Driver calls are not claimed to have a hard real-time kill timeout. Locked/secure/elevated desktops are not bypassed.
 - Browser clicks and all desktop batches are non-idempotent R3 effects. Browser typing is R2. Post-effect inspection failures are uncertain and must be reconciled from human evidence, not blindly repeated.
 
+## Dashboard and voice boundary
+
+- The dashboard binds to literal `127.0.0.1` by default. Credential writes are accepted only for literal loopback binds (`127.0.0.1` or `::1`), not merely a hostname that claims to resolve locally.
+- A random per-launch capability appears in the URL fragment and is copied by first-party JavaScript to `X-UAF-Token`. Fragments are not sent in HTTP requests. Query-string capabilities, cookies, localStorage, and sessionStorage are not accepted/used.
+- Static assets contain no status or credential data. API requests require the capability and an exact allowed `Host`; write requests require bounded JSON. Origin/Fetch-Site checks and no CORS headers reduce cross-site request risk. CSP, no-store, frame denial, no-referrer, and nosniff are applied to responses.
+- Request handling is serial and responses close connections, bounding local resource use. A long provider diagnostic can delay other dashboard requests; it does not create an unbounded worker pool.
+- Explicit non-loopback exposure requires an exact Host allowlist and disables credential writes, experience approval, and factory start. It is a narrow read-only preview/status mode, not a production remote-access/authentication design. Loopback is the recommended setup mode.
+- The key is submitted directly to the local onboarding route and then to the approved OS vault. It is not accepted through voice and is not persisted by browser storage. Unexpected credential-route exception tracebacks are suppressed because third-party exception text may not be redaction-safe.
+- Browser speech recognition is optional and starts only after a user action. On-device processing is preferred where feature-detected; unavailable local recognition never silently falls back to a vendor service. The user must explicitly clear that preference to permit browser/vendor processing.
+- Voice commands can refresh or create/confirm the same bounded start request as the buttons. They cannot approve R2/R3 actions, alter policy, enable paid mode, or submit credentials. A separate start confirmation limits accidental speech activation.
+- Dashboard department cards expose actual step evidence plus capability state, not fabricated agent activity. Startup uses the existing fixed R0 company DAG: local reliability inventory, an orchestration worker/reviewer brief whose model context excludes inventory entries and workspace filenames/contents, and deterministic quality acceptance. Planning text grants no tools or execution authority; higher-risk effects retain ordinary approval/recovery boundaries.
+
 ## Data protection
 
 - Config rejects credential fields; one-key onboarding writes the secret only to an approved OS vault, with rollback on failed setup. Plaintext/fail keyring backends are denied.
@@ -91,7 +107,8 @@ The idempotency ledger stores payload digest, destination, attempt count, state,
 - Provider error bodies are not copied into logs because they may echo sensitive data.
 - Logs and persisted structured data pass redaction helpers.
 - Private memory is excluded from the narrow MCP search adapter.
-- Privacy deletion scrubs active content, revisions, and FTS state; audit retains a content-free tombstone.
+- Privacy deletion scrubs active content, revisions, and FTS state; audit and the content-free experience-capture ledger retain tombstones so replay cannot recapture deleted outcomes.
+- Non-loopback dashboard responses omit experience content and deny experience approval; loopback approval requires an explicit confirmed action and is not a voice command.
 
 Redaction is heuristic. Do not use logs or memory as a secret store, and rotate a credential immediately if it was exposed.
 
@@ -121,6 +138,6 @@ HTML extraction is intentionally simple, not a browser sanitizer. Binary documen
 
 ## Security verification
 
-The suite includes traversal/absolute/sensitive-path denial, symlink escape, disconnected workspace behavior, schema rejection, approval mismatch/rejection, R3 recovery, secret redaction/rejection, OS-vault backend allowlisting, one-key rollback/eligibility, prompt-role token removal, ReAct tool/turn/budget denial, immutable blueprint and cycle/data-flow validation, materialization tampering, interrupted DAG recovery, same-suite evaluation regressions, free-tier fail-closed behavior, quota/cooldown persistence, payload conflicts, uncertain side effects and human reconciliation, plugin tampering, SSRF fixtures, browser launch/domain/credential/stale-digest/restart checks, desktop process/window/focus/action/hotkey/partial-effect checks, and self-update gate tests.
+The suite includes traversal/absolute/sensitive-path denial, symlink escape, disconnected workspace behavior, schema rejection, approval mismatch/rejection, R3 recovery, secret redaction/rejection, OS-vault backend allowlisting, one-key rollback/eligibility, dashboard Host/capability/Origin/JSON/non-loopback boundaries, one-key live-failure/readiness and idempotent DAG checks, voice privacy/static persistence checks, prompt-role token removal, ReAct tool/turn/budget denial, immutable blueprint and cycle/data-flow validation, materialization tampering, interrupted DAG recovery, same-suite evaluation regressions, free-tier fail-closed behavior, quota/cooldown persistence, payload conflicts, uncertain side effects and human reconciliation, plugin tampering, SSRF fixtures, browser launch/domain/credential/stale-digest/restart checks, desktop process/window/focus/action/hotkey/partial-effect checks, and self-update gate tests.
 
 Run `python scripts/verify.py`. Report vulnerabilities through the process in the root [SECURITY.md](../SECURITY.md); do not include live credentials or private data in a report.

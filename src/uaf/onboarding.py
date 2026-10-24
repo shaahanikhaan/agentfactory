@@ -13,7 +13,7 @@ from uaf.providers.base import ensure_model_name, parse_verified_date
 from uaf.providers.http import JSONHttpClient
 
 _MODELS_URL = "https://generativelanguage.googleapis.com/v1beta/models?pageSize=100"
-_DEFAULT_PRICING_SOURCE = "https://ai.google.dev/gemini-api/docs/pricing"
+DEFAULT_PRICING_SOURCE = "https://ai.google.dev/gemini-api/docs/pricing"
 
 
 class GeminiOnboarding:
@@ -92,7 +92,7 @@ class GeminiOnboarding:
         *,
         model: str,
         free_confirmed: bool,
-        source: str = _DEFAULT_PRICING_SOURCE,
+        source: str = DEFAULT_PRICING_SOURCE,
         verified_at: str | None = None,
     ) -> dict[str, Any]:
         api_key = validate_secret(secret)
@@ -161,11 +161,14 @@ class GeminiOnboarding:
             }
             self.config.save(settings)
         except Exception:
-            self.config.save(Settings.from_dict(previous))
-            if previous_secret is None:
-                self.credentials.delete("gemini")
-            else:
-                self.credentials.set("gemini", previous_secret)
+            try:
+                self.config.save(Settings.from_dict(previous))
+            finally:
+                # A second filesystem failure must not strand a newly written credential.
+                if previous_secret is None:
+                    self.credentials.delete("gemini")
+                else:
+                    self.credentials.set("gemini", previous_secret)
             raise
         return {
             "provider": "gemini",

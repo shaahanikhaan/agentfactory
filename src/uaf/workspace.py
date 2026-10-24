@@ -115,9 +115,13 @@ class Workspace:
                     "bytes": child.stat().st_size if child.is_file() else None,
                 }
             )
-            if len(entries) >= limit:
+            if len(entries) > limit:
                 break
-        return {"path": relative, "entries": entries, "truncated": len(entries) >= limit}
+        return {
+            "path": relative,
+            "entries": entries[:limit],
+            "truncated": len(entries) > limit,
+        }
 
     def write_text(self, relative: str, content: str) -> dict:
         data = content.encode("utf-8")

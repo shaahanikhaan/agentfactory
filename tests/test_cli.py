@@ -73,9 +73,11 @@ class CLITests(unittest.TestCase):
         def onboarding(config, credentials):
             return GeminiOnboarding(config, credentials, http=http)
 
-        with patch("uaf.app.CredentialStore", return_value=store), patch(
-            "uaf.cli.GeminiOnboarding", side_effect=onboarding
-        ), patch.dict("os.environ", {"GEMINI_API_KEY": secret}):
+        with (
+            patch("uaf.app.CredentialStore", return_value=store),
+            patch("uaf.cli.GeminiOnboarding", side_effect=onboarding),
+            patch.dict("os.environ", {"GEMINI_API_KEY": secret}),
+        ):
             code, raw = self.invoke(
                 "setup",
                 "--model",
@@ -104,6 +106,16 @@ class CLITests(unittest.TestCase):
         self.assertEqual(code, 2)
         self.assertIn("Unknown task", errors.getvalue())
         self.assertNotIn("Traceback", errors.getvalue())
+
+    def test_doctor_returns_failure_exit_code_for_bootstrap_gate(self):
+        code, _ = self.invoke("init")
+        self.assertEqual(code, 0)
+        (Path(self.home) / "workspace").rmdir()
+        code, raw = self.invoke("doctor")
+        report = json.loads(raw)
+        self.assertFalse(report["ok"])
+        self.assertFalse(report["checks"]["workspace_available"])
+        self.assertEqual(code, 2)
 
 
 if __name__ == "__main__":

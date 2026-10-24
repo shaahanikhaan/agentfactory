@@ -44,16 +44,31 @@ class GeminiAdapter:
             raise ProviderError("Gemini credential is missing", kind="invalid_credentials")
         url = f"{self.origin}/v1beta/models/{quote(spec.model, safe='')}:generateContent"
         started = time.monotonic()
+        generation_config: dict[str, object] = {
+            "maxOutputTokens": min(request.max_output_tokens, spec.output_limit),
+            "temperature": 0.2,
+        }
+        thinking_level = request.metadata.get("thinking_level")
+        if thinking_level is not None:
+            supports_levels = spec.model.startswith(("gemini-3.", "gemini-4-", "gemini-4."))
+            if (
+                not isinstance(thinking_level, str)
+                or thinking_level not in {"low", "medium", "high"}
+                or not supports_levels
+            ):
+                raise ProviderError(
+                    "Gemini thinking level is invalid or unsupported for this model",
+                    kind="invalid_request",
+                    retryable=False,
+                )
+            generation_config["thinkingConfig"] = {"thinkingLevel": thinking_level}
         response = self.http.post_json(
             url,
             headers={"x-goog-api-key": api_key, "User-Agent": "ultimate-agent-factory/0.1"},
             body={
                 "systemInstruction": {"parts": [{"text": request.system}]},
                 "contents": [{"role": "user", "parts": [{"text": request.prompt}]}],
-                "generationConfig": {
-                    "maxOutputTokens": min(request.max_output_tokens, spec.output_limit),
-                    "temperature": 0.2,
-                },
+                "generationConfig": generation_config,
             },
             timeout=self.timeout,
         )

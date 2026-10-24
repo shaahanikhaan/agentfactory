@@ -14,7 +14,7 @@ class DatabaseTests(FactoryCase):
     def test_fresh_migrations_and_integrity(self):
         report = self.db.integrity_check()
         self.assertTrue(report["ok"])
-        self.assertEqual(report["schema_version"], 3)
+        self.assertEqual(report["schema_version"], 4)
         for table in ("agent_blueprints", "factory_runs", "evaluation_case_results"):
             self.assertTrue(self.db.one("SELECT name FROM sqlite_master WHERE name=?", (table,)))
         self.assertTrue(report["foreign_key_violations"] == [])
@@ -43,7 +43,7 @@ class DatabaseTests(FactoryCase):
         )
         conn.close()
         with Database(path, backup_dir=self.root / "upgrade-backups") as upgraded:
-            self.assertEqual(upgraded.migrate(), [2, 3])
+            self.assertEqual(upgraded.migrate(), [2, 3, 4])
             for table in ("research_sources", "agent_blueprints", "factory_run_tasks"):
                 self.assertTrue(
                     upgraded.one("SELECT name FROM sqlite_master WHERE name=?", (table,))

@@ -57,14 +57,19 @@ Use PowerShell `$env:GEMINI_API_KEY='...'` on Windows. Environment variables can
 
 ### Gemini
 
-- Adapter: native `v1beta/models/<model>:generateContent`.
-- Onboarding discovery: fixed `GET v1beta/models` with a header credential, bounded response/models, and no redirect. It returns availability/metadata, not free-tier proof.
+- Adapter: native `v1beta/models/<model>:generateContent`; Google labels this API legacy but continues to support it.
+- Onboarding discovery: fixed `GET v1beta/models` with a header credential, bounded response/models, and no redirect. It returns availability/metadata, not free-tier proof or proof that inference is enabled for the project.
+- Live 3.8 Flash diagnostic: explicit `thinkingLevel=low` and a bounded 256-token combined thinking/output ceiling. Ordinary agent requests retain their own reasoning configuration.
+- Dashboard auto-selection is limited to officially discovered `gemini-3.8-flash`, then `gemini-3.5-flash-lite`, then `gemini-3.1-flash-lite`, with explicit current free-tier confirmation. Paid-only/newly discovered models are not silently configured; 2.5 is not a new-project fallback.
+- Programmatic diagnostics accept an optional configured `model=` so the dashboard probes the selected eligible model. CLI `provider test` retains its existing first-configured-model behavior.
 - Credential: approved OS vault or `GEMINI_API_KEY`, sent in `x-goog-api-key`, never the URL.
 - Official evidence hosts accepted by the router: `ai.google.dev`, `aistudio.google.com`, `cloud.google.com`.
 - Quota scope recorded locally: project.
 - Official rate-limit reference: <https://ai.google.dev/gemini-api/docs/rate-limits>.
 
 Provider limits can vary by model and tier and may be shown most accurately in AI Studio. UAF does not hard-code a third-party quota claim.
+
+For repeated transient timeouts, stop automatic/manual retries until the scoped cooldown expires. A slow but otherwise healthy connection may use a bounded 120-second provider timeout (`uaf config set budgets.provider_timeout_seconds 120`), then one deliberate probe. This does not fix HTTP 401/403/404, project restrictions, or a provider outage; never clear cooldowns or increase retries to evade service limits.
 
 ### Groq
 
@@ -101,7 +106,7 @@ Ollama is restricted to a loopback HTTP endpoint and marked `local`, not cloud-f
 
 - Models are sorted by explicit priority, then stable provider/model name.
 - Required capabilities must be a subset of configured capabilities.
-- Local daily request attempts and per-task model-call ceilings are persisted/enforced.
+- Local daily request attempts and per-task model-call ceilings are persisted/enforced; the daily budget is rechecked before every transient retry.
 - `Retry-After` seconds and HTTP-date forms are parsed.
 - Rate-limit and selected permanent errors create persistent cooldowns.
 - Transient retries are bounded with capped exponential delay/jitter.

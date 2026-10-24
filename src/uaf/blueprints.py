@@ -23,8 +23,13 @@ class BlueprintRegistry:
         self.tools = tools
 
     def register_builtin(self) -> str:
-        path = Path(__file__).parent / "data" / "blueprints" / "offline-inventory.json"
-        return self.register(path, builtin=True)["blueprint_id"]
+        # Explicit reviewed files only; do not auto-register arbitrary dropped JSON.
+        blueprint_dir = Path(__file__).parent / "data" / "blueprints"
+        registered = [
+            self.register(blueprint_dir / filename, builtin=True)["blueprint_id"]
+            for filename in ("offline-inventory.json", "company-startup.json")
+        ]
+        return registered[0]
 
     def register(
         self, source: str | Path | dict[str, Any], *, builtin: bool = False

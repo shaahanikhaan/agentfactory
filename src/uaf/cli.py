@@ -16,6 +16,7 @@ from uaf import __version__
 from uaf.agents import role_catalog
 from uaf.app import Application
 from uaf.config import AppPaths, ConfigManager
+from uaf.dashboard import serve_dashboard
 from uaf.diagnostics import benchmark, capability_report
 from uaf.errors import UAFError, ValidationError
 from uaf.logging_config import configure_logging
@@ -45,10 +46,28 @@ def build_parser() -> argparse.ArgumentParser:
         "--online", action="store_true", help="Explicitly permit configured cloud calls"
     )
     commands.add_parser("doctor", help="Check runtime, paths, database, RAM, and optional features")
-    setup = commands.add_parser("setup", help="Guided one-Gemini-key onboarding with OS vault storage")
+    dashboard = commands.add_parser(
+        "dashboard", help="Open the loopback-first voice/text company dashboard"
+    )
+    dashboard.add_argument("--host", default="127.0.0.1")
+    dashboard.add_argument("--port", type=int, default=8765)
+    dashboard.add_argument(
+        "--no-open", action="store_true", help="Do not open a browser automatically"
+    )
+    dashboard.add_argument(
+        "--allowed-host",
+        action="append",
+        default=[],
+        help="Exact Host header for explicit non-loopback exposure; credential writes stay disabled",
+    )
+    setup = commands.add_parser(
+        "setup", help="Guided one-Gemini-key onboarding with OS vault storage"
+    )
     setup.add_argument("--workspace")
     setup.add_argument("--model", help="Choose a discovered model without a numeric prompt")
-    setup.add_argument("--online", action="store_true", help="Permit model discovery and Gemini calls")
+    setup.add_argument(
+        "--online", action="store_true", help="Permit model discovery and Gemini calls"
+    )
     setup.add_argument(
         "--confirm-free",
         action="store_true",
@@ -428,6 +447,15 @@ def dispatch(args: argparse.Namespace, paths: AppPaths) -> Any:
             return {"configured": True, "eligibility": row, "credential_values_stored": False}
 
     with Application(paths, verbose=args.verbose) as app:
+        if command == "dashboard":
+            serve_dashboard(
+                app,
+                host=args.host,
+                port=args.port,
+                open_browser=not args.no_open,
+                allowed_hosts=set(args.allowed_host),
+            )
+            return None
         if command == "setup":
             return _setup_command(args, app)
         if command == "auth":
@@ -686,9 +714,11 @@ def _setup_command(args: argparse.Namespace, app: Application) -> Any:
             secret = getpass.getpass("Gemini API key (hidden; stored only in OS vault): ")
         except EOFError as exc:
             raise ValidationError("Set GEMINI_API_KEY for noninteractive setup") from exc
-    network_confirmed = args.online or _ask(
-        "Allow one HTTPS request to Google's official models.list endpoint? Type ONLINE: "
-    ) == "ONLINE"
+    network_confirmed = (
+        args.online
+        or _ask("Allow one HTTPS request to Google's official models.list endpoint? Type ONLINE: ")
+        == "ONLINE"
+    )
     discovered = GeminiOnboarding(app.config, app.credentials).discover(
         secret, network_confirmed=network_confirmed
     )
@@ -705,10 +735,14 @@ def _setup_command(args: argparse.Namespace, app: Application) -> Any:
             model = discovered[int(selection) - 1]["model"]
         except (ValueError, IndexError) as exc:
             raise ValidationError("Invalid model selection") from exc
-    free_confirmed = args.confirm_free or _ask(
-        f"Review current pricing at {args.source}. Model discovery does not prove free "
-        "eligibility. Type FREE only if this key/model is currently eligible: "
-    ) == "FREE"
+    free_confirmed = (
+        args.confirm_free
+        or _ask(
+            f"Review current pricing at {args.source}. Model discovery does not prove free "
+            "eligibility. Type FREE only if this key/model is currently eligible: "
+        )
+        == "FREE"
+    )
     result = GeminiOnboarding(app.config, app.credentials).complete(
         secret,
         discovered,
@@ -886,6 +920,9 @@ def main(argv: list[str] | None = None) -> int:
         result = dispatch(args, paths)
         if result is not None:
             _emit(result, json_output=json_output)
+        if args.command == "doctor" and isinstance(result, dict) and not result.get("ok", False):
+            # Scripts such as Start-UAF.cmd rely on the process status, not only JSON.
+            return 2
         return 0
     except UAFError as exc:
         error = {

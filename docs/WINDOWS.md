@@ -4,9 +4,15 @@
 
 UAF targets Windows 10/11, Python 3.11+, CPU-only operation, and 4 GB RAM with serial defaults. Core SQLite/config work needs no GPU, Docker, database server, or paid account.
 
-**This checkout was executed on Linux, not Windows.** The browser/desktop tests use fake drivers. Windows installation, real Chromium, Credential Locker, physical mouse/keyboard, locked-session behavior, and 4 GB RAM acceptance must still run on Windows. Do not interpret Python compatibility as a passed Windows acceptance test.
+**The automated checkout gates ran on Linux.** Browser/desktop tests use fake drivers. Separately, the user reported Windows Python 3.11.9 initialization, doctor checks, approved Credential Locker storage, and eligible `gemini-3.8-flash` configuration; real generation attempts then failed with provider-unavailable/timeout results. This is partial user-reported evidence, not successful live inference or completed dashboard/microphone/physical-desktop/4 GB acceptance.
 
-## Complete first-time installation
+## Easiest one-click dashboard path
+
+From the reviewed source directory, double-click **`Start-UAF.cmd`**. It automates the local environment, optional dependencies/Chromium, `init`, and `doctor`, then opens the private loopback company dashboard. Paste the Gemini key only into that local page and explicitly confirm current official free-tier terms. Setup includes one bounded live diagnostic, then a durable three-step startup DAG with local inventory, one privacy-safe worker/reviewer brief (two additional model calls), and deterministic quality acceptance before it can be reported ready.
+
+The launcher does not need an administrator shell, global pip install, PowerShell execution-policy change, or a second AI key. A required failure stops with recovery text; optional Chromium failure does not block the normal-browser dashboard. For URL/capability, voice/audio privacy, provider failures, and run recovery, use [Dashboard and voice](DASHBOARD.md). Windows execution of this new launcher/dashboard is still an acceptance step, not a passed result.
+
+## Complete first-time installation (manual alternative)
 
 ### 1. Install prerequisites
 
