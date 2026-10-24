@@ -1,0 +1,14 @@
+{
+  "skill_id": "evidence-led-coding",
+  "version": "1.0.0",
+  "name": "Evidence-Led Coding",
+  "description": "Small vertical slices with runtime policy, tests, recovery, and reviewable evidence.",
+  "triggers": ["implement", "fix bug", "refactor", "self-update proposal"],
+  "allowed_tools": ["workspace.read", "workspace.list", "workspace.write"],
+  "required_dependencies": [],
+  "source": "UAF original",
+  "license": "MIT",
+  "body": "SKILL.md",
+  "sha256": "cf314ac82d40ba01ed90ab3af0351f891a98574a2c46594dad521b9615eec529",
+  "resources": []
+}

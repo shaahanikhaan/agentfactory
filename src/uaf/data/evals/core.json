@@ -1,0 +1,153 @@
+{
+  "suite_id": "uaf-core-offline",
+  "version": "1",
+  "description": "Deterministic control-plane and safety regression suite; this is not a model-quality benchmark.",
+  "cases": [
+    {
+      "case_id": "smoke-durable-output",
+      "name": "Offline smoke completes with no model call",
+      "split": "development",
+      "tags": ["offline", "durability"],
+      "task": {"goal": "Evaluation smoke", "kind": "smoke"},
+      "expect": {
+        "state": "succeeded",
+        "checks": [
+          {"path": "result.mode", "operator": "eq", "value": "offline_deterministic"},
+          {"path": "metrics.model_calls", "operator": "eq", "value": 0},
+          {"path": "metrics.checkpoints", "operator": "eq", "value": 4}
+        ]
+      }
+    },
+    {
+      "case_id": "smoke-checkpoint-replay",
+      "name": "Re-running a completed task does not duplicate checkpoints",
+      "split": "development",
+      "tags": ["offline", "replay"],
+      "task": {"goal": "Evaluation replay", "kind": "smoke"},
+      "repeat": 2,
+      "expect": {
+        "state": "succeeded",
+        "checks": [
+          {"path": "metrics.checkpoints", "operator": "eq", "value": 4},
+          {"path": "metrics.model_calls", "operator": "eq", "value": 0}
+        ]
+      }
+    },
+    {
+      "case_id": "workspace-write-postcondition",
+      "name": "Governed write verifies its postcondition",
+      "split": "development",
+      "tags": ["tools", "filesystem"],
+      "task": {
+        "goal": "Write evaluation fixture",
+        "kind": "tool",
+        "risk_tier": "R1",
+        "allowed_tools": ["workspace.write"],
+        "input": {
+          "tool": "workspace.write",
+          "arguments": {"path": "evals/write.txt", "content": "verified"}
+        }
+      },
+      "expect": {
+        "state": "succeeded",
+        "checks": [
+          {"path": "result.output.postcondition", "operator": "eq", "value": true},
+          {"path": "metrics.tool_calls", "operator": "eq", "value": 1},
+          {"path": "metrics.model_calls", "operator": "eq", "value": 0}
+        ]
+      }
+    },
+    {
+      "case_id": "workspace-schema-rejection",
+      "name": "Invalid tool input fails before a write",
+      "split": "development",
+      "tags": ["tools", "negative", "schema"],
+      "task": {
+        "goal": "Reject invalid write",
+        "kind": "tool",
+        "risk_tier": "R1",
+        "allowed_tools": ["workspace.write"],
+        "input": {
+          "tool": "workspace.write",
+          "arguments": {"path": "evals/invalid.txt", "content": 42}
+        }
+      },
+      "expect": {
+        "state": "failed",
+        "checks": [{"path": "error.code", "operator": "eq", "value": "validation_error"}]
+      }
+    },
+    {
+      "case_id": "workspace-list-evidence",
+      "name": "Workspace listing returns inspectable evidence",
+      "split": "held_out",
+      "tags": ["tools", "filesystem"],
+      "task": {
+        "goal": "List evaluation workspace",
+        "kind": "tool",
+        "allowed_tools": ["workspace.list"],
+        "input": {"tool": "workspace.list", "arguments": {"path": ".", "limit": 20}}
+      },
+      "expect": {
+        "state": "succeeded",
+        "checks": [
+          {"path": "result.output.entries", "operator": "exists"},
+          {"path": "metrics.model_calls", "operator": "eq", "value": 0}
+        ]
+      }
+    },
+    {
+      "case_id": "workspace-missing-file",
+      "name": "Missing input is an explicit failure",
+      "split": "held_out",
+      "tags": ["tools", "negative"],
+      "task": {
+        "goal": "Read missing evaluation input",
+        "kind": "tool",
+        "allowed_tools": ["workspace.read"],
+        "input": {"tool": "workspace.read", "arguments": {"path": "evals/missing.txt"}}
+      },
+      "expect": {
+        "state": "failed",
+        "checks": [{"path": "error.code", "operator": "eq", "value": "validation_error"}]
+      }
+    },
+    {
+      "case_id": "workspace-traversal-denied",
+      "name": "Traversal cannot escape the workspace",
+      "split": "held_out",
+      "tags": ["security", "negative"],
+      "task": {
+        "goal": "Reject traversal",
+        "kind": "tool",
+        "allowed_tools": ["workspace.read"],
+        "input": {"tool": "workspace.read", "arguments": {"path": "../secret.txt"}}
+      },
+      "expect": {
+        "state": "failed",
+        "checks": [{"path": "error.code", "operator": "eq", "value": "validation_error"}]
+      }
+    },
+    {
+      "case_id": "delete-requires-approval",
+      "name": "R3 deletion pauses before side effects",
+      "split": "held_out",
+      "tags": ["security", "approval", "negative"],
+      "fixtures": [{"path": "evals/delete.txt", "content": "await approval"}],
+      "task": {
+        "goal": "Request governed deletion",
+        "kind": "tool",
+        "risk_tier": "R3",
+        "allowed_tools": ["workspace.delete"],
+        "input": {"tool": "workspace.delete", "arguments": {"path": "evals/delete.txt"}}
+      },
+      "expect": {
+        "state": "awaiting_approval",
+        "checks": [
+          {"path": "approval_id", "operator": "exists"},
+          {"path": "metrics.tool_calls", "operator": "eq", "value": 0}
+        ]
+      }
+    }
+  ]
+}

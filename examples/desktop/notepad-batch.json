@@ -1,0 +1,10 @@
+{
+  "application": "notepad.exe",
+  "window_title": "Untitled - Notepad",
+  "actions": [
+    {
+      "kind": "type",
+      "text": "Hello from UAF. This text was typed only after exact human approval."
+    }
+  ]
+}

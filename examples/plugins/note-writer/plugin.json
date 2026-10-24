@@ -1,0 +1,27 @@
+{
+  "plugin_id": "note-writer",
+  "name": "Governed Note Writer",
+  "version": "1.0.0",
+  "api_version": "1",
+  "kind": "declarative-workflow",
+  "permissions": ["workspace.write"],
+  "license": "MIT",
+  "source": "UAF example",
+  "workflow": {
+    "tool": "workspace.write",
+    "arguments": {
+      "path": "notes/{{name}}.md",
+      "content": "{{content}}"
+    }
+  },
+  "workflow_sha256": "5c379ad366d2a558a9827cee73db5b8519fed2664c0ceaab4d06ed0c7d1cc764",
+  "input_schema": {
+    "type": "object",
+    "required": ["name", "content"],
+    "additionalProperties": false,
+    "properties": {
+      "name": {"type": "string", "minLength": 1, "maxLength": 80},
+      "content": {"type": "string", "minLength": 1, "maxLength": 100000}
+    }
+  }
+}

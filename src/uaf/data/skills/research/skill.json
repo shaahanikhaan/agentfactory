@@ -1,0 +1,14 @@
+{
+  "skill_id": "verified-research",
+  "version": "1.0.0",
+  "name": "Verified Research",
+  "description": "Primary-source research with provenance, freshness, conflicts, and injection boundaries.",
+  "triggers": ["research", "compare frameworks", "verify dependency", "current documentation"],
+  "allowed_tools": ["workspace.read"],
+  "required_dependencies": [],
+  "source": "UAF original",
+  "license": "MIT",
+  "body": "SKILL.md",
+  "sha256": "cadcb2c54a779dcac2b2917b51c11873299f23710006ad55eed66540a5071fc2",
+  "resources": []
+}

@@ -1,0 +1,55 @@
+{
+  "name": "offline-workspace-inventory",
+  "version": "1",
+  "description": "A real offline two-step DAG: bounded workspace inventory followed by a durable deterministic record. No AI or network claim.",
+  "input_schema": {
+    "type": "object",
+    "required": ["path", "limit"],
+    "additionalProperties": false,
+    "properties": {
+      "path": {"type": "string", "default": ".", "maxLength": 500},
+      "limit": {"type": "integer", "minimum": 1, "maximum": 200, "default": 100}
+    }
+  },
+  "defaults": {
+    "department": "engineering",
+    "priority": "normal",
+    "constraints": ["Keep all data inside the configured workspace"]
+  },
+  "agents": [
+    {
+      "agent_id": "inventory-worker",
+      "name": "Workspace inventory worker",
+      "kind": "tool",
+      "allowed_tools": ["workspace.list"],
+      "risk_tier": "R0"
+    },
+    {
+      "agent_id": "durability-recorder",
+      "name": "Offline durability recorder",
+      "kind": "smoke",
+      "risk_tier": "R0"
+    }
+  ],
+  "steps": [
+    {
+      "step_id": "inventory",
+      "agent_id": "inventory-worker",
+      "goal": "Inventory the configured workspace for {{ goal }}",
+      "input": {
+        "tool": "workspace.list",
+        "arguments": {
+          "path": "{{ inputs.path }}",
+          "limit": "{{ inputs.limit }}"
+        }
+      }
+    },
+    {
+      "step_id": "record",
+      "agent_id": "durability-recorder",
+      "goal": "Record durable completion of {{ goal }}",
+      "depends_on": ["inventory"]
+    }
+  ],
+  "output": {"from": "inventory"}
+}
