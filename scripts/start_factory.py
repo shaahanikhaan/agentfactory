@@ -15,7 +15,7 @@ from typing import Any
 ROOT = Path(__file__).resolve().parents[1]
 PIP_VERSION = "26.2.2"
 SETUPTOOLS_VERSION = "84.2.1"
-BOOTSTRAP_FORMAT = 1
+BOOTSTRAP_FORMAT = 2
 INSTALL_TIMEOUT_SECONDS = 900
 BROWSER_INSTALL_TIMEOUT_SECONDS = 600
 DOCTOR_TIMEOUT_SECONDS = 90
@@ -34,8 +34,9 @@ def source_digest(root: Path = ROOT) -> str:
     return digest.hexdigest()
 
 
-def dependency_commands(python: Path) -> list[list[str]]:
+def dependency_commands(python: Path, *, with_computer_use: bool = False) -> list[list[str]]:
     executable = str(python)
+    extra = "computer-use" if with_computer_use else "setup"
     return [
         [
             executable,
@@ -46,7 +47,7 @@ def dependency_commands(python: Path) -> list[list[str]]:
             f"pip=={PIP_VERSION}",
             f"setuptools=={SETUPTOOLS_VERSION}",
         ],
-        [executable, "-m", "pip", "install", "--editable", ".[computer-use]"],
+        [executable, "-m", "pip", "install", "--editable", f".[{extra}]"],
     ]
 
 
@@ -86,13 +87,14 @@ def run_bounded(command: list[str], *, timeout: int, cwd: Path = ROOT) -> None:
     subprocess.run(command, cwd=cwd, check=True, timeout=timeout)  # noqa: S603 - fixed argv, no shell
 
 
-def dependencies_importable(python: Path) -> bool:
+def dependencies_importable(python: Path, *, with_computer_use: bool = False) -> bool:
+    modules = ("keyring", "playwright", "pyautogui") if with_computer_use else ("keyring",)
     result = subprocess.run(  # noqa: S603 - local venv interpreter, no shell
         [
             str(python),
             "-c",
             "import importlib.util as u; "
-            "raise SystemExit(not all(u.find_spec(n) for n in ('keyring','playwright','pyautogui')))",
+            f"raise SystemExit(not all(u.find_spec(n) for n in {modules!r}))",
         ],
         cwd=ROOT,
         stdin=subprocess.DEVNULL,
@@ -104,7 +106,9 @@ def dependencies_importable(python: Path) -> bool:
     return result.returncode == 0
 
 
-def prepare(*, skip_optional_browser: bool = False) -> tuple[Path, dict[str, Any]]:
+def prepare(
+    *, skip_optional_browser: bool = False, with_computer_use: bool = False
+) -> tuple[Path, dict[str, Any]]:
     if sys.version_info < (3, 11):  # noqa: UP036 - pre-install interpreter gate
         raise RuntimeError("Python 3.11 or newer is required. Run Start-UAF.cmd again.")
     ROOT.mkdir(exist_ok=True)  # Repository root already exists; never relocate it.
@@ -119,23 +123,25 @@ def prepare(*, skip_optional_browser: bool = False) -> tuple[Path, dict[str, Any
     if (
         marker.get("format") != BOOTSTRAP_FORMAT
         or marker.get("source_digest") != digest
-        or not dependencies_importable(python)
+        or marker.get("computer_use") != with_computer_use
+        or not dependencies_importable(python, with_computer_use=with_computer_use)
     ):
         print(
             "Installing/updating only the local environment. First run needs internet; "
             "no system-wide package installation or administrator shell is used.",
             flush=True,
         )
-        for command in dependency_commands(python):
+        for command in dependency_commands(python, with_computer_use=with_computer_use):
             run_bounded(command, timeout=INSTALL_TIMEOUT_SECONDS)
         marker = {
             "format": BOOTSTRAP_FORMAT,
             "source_digest": digest,
+            "computer_use": with_computer_use,
             "chromium": False,
         }
         write_marker(marker_path, marker)
 
-    if not skip_optional_browser and not marker.get("chromium"):
+    if with_computer_use and not skip_optional_browser and not marker.get("chromium"):
         print(
             "Preparing optional Chromium automation. The voice dashboard uses your normal "
             "browser and can still start if this optional download fails.",
@@ -172,14 +178,26 @@ def prepare(*, skip_optional_browser: bool = False) -> tuple[Path, dict[str, Any
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Prepare and open the local UAF company dashboard")
-    parser.add_argument("--port", type=int, default=8765)
+    parser.add_argument("--port", type=int, default=0, help="Dashboard port; 0 selects a free port")
     parser.add_argument("--no-open", action="store_true")
-    parser.add_argument("--skip-optional-browser", action="store_true")
+    parser.add_argument(
+        "--with-computer-use",
+        action="store_true",
+        help="Also install optional Playwright/PyAutoGUI and prepare Chromium",
+    )
+    parser.add_argument(
+        "--skip-optional-browser",
+        action="store_true",
+        help="With computer-use, skip only the optional Chromium download",
+    )
     args = parser.parse_args(argv)
-    if not 1 <= args.port <= 65_535:
-        parser.error("port must be between 1 and 65535")
+    if not 0 <= args.port <= 65_535:
+        parser.error("port must be between 0 and 65535")
     try:
-        python, _ = prepare(skip_optional_browser=args.skip_optional_browser)
+        python, _ = prepare(
+            skip_optional_browser=args.skip_optional_browser,
+            with_computer_use=args.with_computer_use,
+        )
         print(
             "\nLocal checks passed. Opening the private dashboard. "
             "Enter the Gemini API key only in that local page.",

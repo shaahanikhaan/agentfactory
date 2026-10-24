@@ -1,7 +1,7 @@
 {
   "name": "company-startup",
-  "version": "1",
-  "description": "Real three-step company startup: reliability inventory, a privacy-bounded orchestration worker/reviewer brief, and quality acceptance recording. No workspace names or contents are sent to the model.",
+  "version": "2",
+  "description": "Real three-step company startup: reliability inventory, a privacy-bounded orchestration worker/reviewer brief, and deterministic upstream-evidence acceptance. No workspace names or contents are sent to the model.",
   "input_schema": {
     "type": "object",
     "required": ["path", "limit"],
@@ -41,9 +41,10 @@
     },
     {
       "agent_id": "quality-acceptance-recorder",
-      "name": "Quality durable acceptance recorder",
-      "kind": "smoke",
+      "name": "Quality deterministic upstream-evidence gate",
+      "kind": "tool",
       "department": "quality",
+      "allowed_tools": ["factory.accept_startup"],
       "risk_tier": "R0"
     }
   ],
@@ -77,8 +78,18 @@
     {
       "step_id": "acceptance-record",
       "agent_id": "quality-acceptance-recorder",
-      "goal": "Record durable acceptance of {{ goal }} without claiming additional execution",
-      "depends_on": ["operations-brief"]
+      "goal": "Validate real upstream evidence for {{ goal }} without claiming additional execution",
+      "depends_on": ["operations-brief"],
+      "input": {
+        "tool": "factory.accept_startup",
+        "arguments": {
+          "inventory": "{{ steps.inventory.output }}",
+          "brief": "{{ steps.operations-brief.output }}",
+          "inventory_state": "{{ steps.inventory.state }}",
+          "brief_state": "{{ steps.operations-brief.state }}",
+          "review_verdict": "{{ steps.operations-brief.result.review.verdict }}"
+        }
+      }
     }
   ],
   "output": {"from": "operations-brief"}

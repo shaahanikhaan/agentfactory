@@ -25,7 +25,10 @@ class BootstrapTests(unittest.TestCase):
         self.assertTrue(all(isinstance(command, list) for command in commands))
         self.assertIn("pip==26.2.2", commands[0])
         self.assertIn("setuptools==84.2.1", commands[0])
-        self.assertIn(".[computer-use]", commands[1])
+        self.assertIn(".[setup]", commands[1])
+        self.assertNotIn(".[computer-use]", commands[1])
+        computer_use = bootstrap.dependency_commands(python, with_computer_use=True)
+        self.assertIn(".[computer-use]", computer_use[1])
         dashboard = bootstrap.dashboard_command(python, port=8765, no_open=True)
         self.assertIn("127.0.0.1", dashboard)
         self.assertIn("--no-open", dashboard)
@@ -58,14 +61,40 @@ class BootstrapTests(unittest.TestCase):
     def test_successful_prepare_launches_loopback_dashboard(self):
         python = Path("fake/.venv/python")
         with (
-            mock.patch.object(bootstrap, "prepare", return_value=(python, {})),
+            mock.patch.object(bootstrap, "prepare", return_value=(python, {})) as prepare,
             mock.patch.object(bootstrap.subprocess, "call", return_value=0) as launch,
         ):
             result = bootstrap.main(["--skip-optional-browser", "--no-open"])
         self.assertEqual(result, 0)
+        prepare.assert_called_once_with(skip_optional_browser=True, with_computer_use=False)
         command = launch.call_args.args[0]
         self.assertIn("127.0.0.1", command)
         self.assertIn("--no-open", command)
+        self.assertEqual(command[command.index("--port") + 1], "0")
+
+    def test_default_lightweight_prepare_never_invokes_chromium(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            python = Path(tmp) / "python"
+            python.touch()
+            marker = {
+                "format": bootstrap.BOOTSTRAP_FORMAT,
+                "source_digest": "digest",
+                "computer_use": False,
+                "chromium": False,
+            }
+            with (
+                mock.patch.object(bootstrap, "venv_python", return_value=python),
+                mock.patch.object(bootstrap, "source_digest", return_value="digest"),
+                mock.patch.object(bootstrap, "read_marker", return_value=marker),
+                mock.patch.object(bootstrap, "dependencies_importable", return_value=True),
+                mock.patch.object(bootstrap, "run_bounded"),
+                mock.patch.object(bootstrap, "write_marker") as write_marker,
+                mock.patch.object(bootstrap.subprocess, "run") as installer,
+            ):
+                _, returned = bootstrap.prepare()
+            self.assertFalse(returned["computer_use"])
+            installer.assert_not_called()
+            write_marker.assert_not_called()
 
     def test_optional_browser_timeout_or_os_error_does_not_abort_setup(self):
         for failure in (
@@ -78,6 +107,7 @@ class BootstrapTests(unittest.TestCase):
                 marker = {
                     "format": bootstrap.BOOTSTRAP_FORMAT,
                     "source_digest": "digest",
+                    "computer_use": True,
                     "chromium": False,
                 }
                 with (
@@ -89,7 +119,7 @@ class BootstrapTests(unittest.TestCase):
                     mock.patch.object(bootstrap, "write_marker") as write_marker,
                     mock.patch.object(bootstrap.subprocess, "run", side_effect=failure),
                 ):
-                    _, returned = bootstrap.prepare()
+                    _, returned = bootstrap.prepare(with_computer_use=True)
                 self.assertFalse(returned["chromium"])
                 self.assertTrue(write_marker.called)
 

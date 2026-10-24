@@ -6,6 +6,11 @@ import time
 from dataclasses import asdict, dataclass
 from typing import Any, Protocol
 
+from uaf.acceptance import (
+    MAX_STARTUP_BRIEF_CHARS,
+    MAX_STARTUP_INVENTORY_ENTRIES,
+    evaluate_startup_acceptance,
+)
 from uaf.approvals import ApprovalService
 from uaf.db import Database
 from uaf.errors import SideEffectError, UAFError, ValidationError
@@ -324,6 +329,69 @@ class WorkspacePythonMapTool:
         )
 
 
+class StartupAcceptanceTool:
+    """Validate real company-startup evidence; never fabricate quality or execution."""
+
+    def metadata(self) -> ToolMetadata:
+        return ToolMetadata(
+            name="factory.accept_startup",
+            version="1",
+            description="Validate bounded startup inventory, brief, states, and reviewer verdict",
+            input_schema={
+                "type": "object",
+                "required": [
+                    "inventory",
+                    "brief",
+                    "inventory_state",
+                    "brief_state",
+                    "review_verdict",
+                ],
+                "additionalProperties": False,
+                "properties": {
+                    "inventory": {"type": "object"},
+                    "brief": {"type": "string", "maxLength": MAX_STARTUP_BRIEF_CHARS},
+                    "inventory_state": {"type": "string", "maxLength": 40},
+                    "brief_state": {"type": "string", "maxLength": 40},
+                    "review_verdict": {"type": "string", "maxLength": 40},
+                },
+            },
+            output_schema={
+                "type": "object",
+                "required": ["accepted", "postcondition", "checks", "evidence"],
+                "properties": {
+                    "accepted": {"type": "boolean"},
+                    "postcondition": {"type": "boolean"},
+                    "checks": {"type": "array", "maxItems": 5},
+                    "evidence": {
+                        "type": "object",
+                        "required": [
+                            "scope",
+                            "checks_passed",
+                            "checks_total",
+                            "inventory_entries",
+                            "brief_sha256",
+                            "additional_execution_claimed",
+                        ],
+                    },
+                },
+            },
+            risk_tier=RiskTier.R0,
+            allowed_roles=frozenset({"worker", "reviewer"}),
+        )
+
+    def execute(self, context: ToolContext, payload: dict[str, Any]) -> ToolResult:
+        output = evaluate_startup_acceptance(**payload)
+        return ToolResult(
+            output=output,
+            evidence={
+                "accepted": output["accepted"],
+                "checks_passed": output["evidence"]["checks_passed"],
+                "inventory_entry_ceiling": MAX_STARTUP_INVENTORY_ENTRIES,
+                "additional_execution_claimed": False,
+            },
+        )
+
+
 class WorkspaceWriteTool:
     def __init__(self, workspace: Workspace) -> None:
         self.workspace = workspace
@@ -392,6 +460,7 @@ def build_tool_registry(
     registry = ToolRegistry(db, approvals, ledger, max_output_chars=max_output_chars)
     registry.register(WorkspaceListTool(workspace))
     registry.register(WorkspacePythonMapTool(workspace))
+    registry.register(StartupAcceptanceTool())
     registry.register(WorkspaceReadTool(workspace))
     registry.register(WorkspaceWriteTool(workspace))
     registry.register(WorkspaceDeleteTool(workspace))

@@ -25,7 +25,8 @@ All notable changes are recorded here. This project uses semantic versioning for
 - Schema-v4 governed task experience with idempotent pending outcomes, sensitive-capture skips, deletion-safe replay, and human-approved non-private untrusted recall.
 - Governed R0 `workspace.python_map` with bounded stdlib AST imports/symbols, syntax evidence, symlink defenses, and no source execution.
 - Evidence-first dashboard activity, opt-in unused capability cards, and loopback-only confirmed experience review; non-loopback responses omit experience content.
-- Three-step company startup with local reliability inventory, privacy-safe memory-free orchestration worker/reviewer brief, and deterministic quality acceptance.
+- Three-step `company-startup@2` with local reliability inventory, privacy-safe memory-free orchestration worker/reviewer brief, and the governed `factory.accept_startup` tool enforcing five deterministic upstream-evidence checks; version-1 history remains compatible.
+- Lightweight one-click bootstrap installs only OS-vault setup dependencies by default, selects a free loopback port automatically, and reserves browser/desktop packages/Chromium for explicit `--with-computer-use`.
 - Checksummed skills and disabled-by-default declarative plugins with a note-writer example.
 - Bounded research prototype, optional MCP stdio adapter, and isolated human-gated self-update prototype.
 - Verified SQLite snapshots/restores, diagnostics, capability reporting, and reproducible offline benchmark.
@@ -41,6 +42,8 @@ All notable changes are recorded here. This project uses semantic versioning for
 - Onboarding restores the previous vault credential even when configuration rollback also fails; the runner failure-state guard now checks the actual current state.
 - Workspace listings report `truncated` only when visible entries actually remain after the requested limit.
 - Non-loopback dashboards deny factory start as well as credential/experience writes; stale live readiness is labelled `stale`, failed doctor checks are named, busy credential fields are disabled, and hidden remote experience counts no longer produce a misleading empty message.
+- Malformed Gemini/OpenAI-compatible candidates, content parts, usage objects, and token counts now produce bounded `invalid_response` provider errors instead of incidental `KeyError`/`AttributeError`/`TypeError` failures.
+- Company startup no longer treats generic smoke completion as quality acceptance; blank briefs and invalid upstream evidence prevent `Factory ready` even when a reviewer incorrectly returns `pass`.
 
 ### Known limits
 

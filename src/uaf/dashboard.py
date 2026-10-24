@@ -37,8 +37,8 @@ MODEL_PRIORITY = (
 )
 START_CONFIRMATION = "START_FREE_FACTORY"
 EXPERIENCE_CONFIRMATION = "APPROVE_TASK_EXPERIENCE"
-STARTUP_BLUEPRINT = "company-startup@1"
-STARTUP_IDEMPOTENCY = "dashboard-company-start-v2"
+STARTUP_BLUEPRINT = "company-startup@2"
+STARTUP_IDEMPOTENCY = "dashboard-company-start-v3"
 STARTUP_STEP_DEPARTMENTS = {
     "inventory": "reliability",
     "operations-brief": "orchestration",

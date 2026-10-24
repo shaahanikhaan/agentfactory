@@ -161,6 +161,46 @@ class ProviderTests(FactoryCase):
         )
         self.assertEqual(openai.generate(spec, self.request(), "secret").text, "ok")
 
+    def test_malformed_provider_payloads_fail_as_bounded_provider_errors(self):
+        class HTTP:
+            def __init__(self, response):
+                self.response = response
+
+            def post_json(self, *args, **kwargs):
+                return self.response
+
+        spec = self.app.providers._spec(
+            "gemini", "fake-free", {"free_tier_status": "free", "capabilities": ["text"]}
+        )
+        gemini_ok = {"candidates": [{"content": {"parts": [{"text": "ok"}]}}]}
+        openai_ok = {"choices": [{"message": {"content": "ok"}}]}
+        cases = [
+            ("gemini", []),
+            ("openai", []),
+            ("gemini", {"candidates": {}}),
+            ("gemini", {"candidates": [None]}),
+            ("gemini", {**gemini_ok, "usageMetadata": []}),
+            ("gemini", {**gemini_ok, "usageMetadata": {"promptTokenCount": "many"}}),
+            ("openai", {**openai_ok, "usage": []}),
+            ("openai", {**openai_ok, "usage": {"prompt_tokens": -1}}),
+        ]
+        for kind, response in cases:
+            with self.subTest(provider=kind, response=response):
+                http = HTTP(response)
+                adapter = (
+                    GeminiAdapter(http)
+                    if kind == "gemini"
+                    else OpenAICompatibleAdapter(
+                        "groq",
+                        "https://api.groq.com/openai/v1/chat/completions",
+                        "GROQ_API_KEY",
+                        http,
+                    )
+                )
+                with self.assertRaises(ProviderError) as caught:
+                    adapter.generate(spec, self.request(), "secret")
+                self.assertEqual(caught.exception.kind, "invalid_response")
+
     def test_gemini_thinking_level_is_explicit_and_validated(self):
         class HTTP:
             def __init__(self):

@@ -29,14 +29,14 @@ uaf benchmark --iterations 5 --json
 
 ## Evidence from this checkout
 
-Date: **2026-10-24**. Environment: Linux sandbox, Python 3.11.2, SQLite 3.40.1 with FTS5, 2 logical CPUs, approximately 3.8 GiB RAM. No real cloud credentials or cloud requests were used.
+Date: **2026-10-25**. Environment: Linux sandbox, Python 3.11.2, SQLite 3.40.1 with FTS5, 2 logical CPUs, approximately 3.8 GiB RAM. No real cloud credentials or cloud requests were used.
 
 | Gate | Result |
 |---|---|
 | Editable package install / `uaf` entry point | Passed; core and combined computer-use extras |
 | Compile all source/tests | Passed |
-| Formal tests with optional MCP + computer-use packages installed | **177 passed, 57 subtests passed** |
-| Release gate `scripts/verify.py --pytest` | Passed; compile, 177 unittest tests, pytest/subtests, Ruff, audit, and MCP integration |
+| Formal tests with optional MCP + computer-use packages installed | **183 passed, 70 subtests passed** |
+| Release gate `scripts/verify.py --pytest` | Passed; compile, 183 unittest tests, pytest/subtests, Ruff, audit, and MCP integration |
 | Ruff `src tests scripts` | Passed |
 | `pip-audit` with optional dependencies installed | **No known vulnerabilities found** in that environment |
 | CLI init/doctor/status | Passed; optional dependency detection and non-secret credential status |
@@ -44,11 +44,12 @@ Date: **2026-10-24**. Environment: Linux sandbox, Python 3.11.2, SQLite 3.40.1 w
 | Built-in offline factory DAG (CLI and clean wheel) | Passed; 2/2 steps, 8 checkpoints, 1 tool call, 0 model calls |
 | Governed task experience | Passed; pending/idempotent terminal outcomes, sensitive-capture skip, human-only approval, bounded untrusted recall, private exclusion, and no privacy-delete resurrection |
 | Python repository map | Passed; real AST imports/symbols/syntax evidence, top-level raise not executed, governed tool task, traversal/symlink defenses, and bounded/truncated output |
+| Deterministic startup acceptance | Passed; five real contract checks, two startup tool calls, version-1/version-2 coexistence, and failed readiness for a whitespace brief despite a fake reviewer `pass` |
 | Custom blueprint/ReAct/approval/recovery tests | Passed; immutable specs, nested data flow, decision reuse, tamper and interruption coverage |
 | One-key onboarding and credential routing | Passed with fake official HTTP/vault drivers; rollback, previous-credential restoration even when config rollback also fails, backend allowlist, env precedence, and no config/DB secret |
 | Company dashboard HTTP + one-key startup | Passed with real loopback HTTP and fake official/provider/vault drivers; Host/capability/Origin/JSON boundaries, selected-model low-thinking probe, no response/config/audit secret, live failure without readiness, non-loopback credential/start/write denial, stale-readiness and failed-doctor-check reporting, and idempotent 3/3 company DAG success/replay with two model calls, per-department evidence, private-filename/content exclusion, explicit/idempotent loopback-only experience approval, and non-loopback experience-content omission |
-| Dashboard process/preview contract | Passed with the latest real server process, exact preview Host, CSP static response, authenticated status, 11 named doctor checks, 12 capability records, actual-activity/experience UI markers, and non-loopback `credential_write:false`/`approval_write:false`; experience content was omitted and setup/factory-start/approval writes each returned 403 |
-| One-click bootstrap | Passed command-plan/marker/doctor-gate tests; fixed argv/no shell, bounded timeouts, optional Chromium timeout/OS-error tolerance, real nonzero failed-doctor CLI status, local venv, and dashboard launch only after prepare; no Windows execution claimed |
+| Clean-wheel dashboard process/HTTP contract | Passed on a real OS-assigned loopback port; CSP static response, authenticated status, 11 named doctor checks, hostile-Host 403, fake-live setup and 3/3 company readiness with five acceptance checks, idempotent replay, private-filename/content exclusion, and non-loopback setup/factory-start/experience-approval writes each returning 403; no physical browser or live provider claim |
+| One-click bootstrap | Passed command-plan/marker/doctor-gate tests plus an actual isolated Linux `prepare()` run: patched pinned pip/setuptools, lightweight `setup` extra, keyring present, Playwright/PyAutoGUI absent, Chromium marker false, and 11/11 doctor checks. Also covers automatic free-port launch, explicit full computer-use plan, fixed argv/no shell, bounded timeouts, optional Chromium failure tolerance, and doctor-failure launch blocking; no Windows execution claimed |
 | Browser voice command slice | Passed JavaScript syntax and static/privacy/command markers; one utterance, `available/install` + `processLocally` preflight, no silent remote fallback, text fallback, no browser credential storage or voice approval; no physical microphone test |
 | Governed browser tools | Passed with fake/real-adapter launch-contract drivers; visible dedicated profile, redaction, digest/restart revalidation, denied credential fields, and uncertainty |
 | Governed desktop tools | Passed with fake Windows driver; approval-before-input, exact process/title/focus, bounded batches, reconciliation, resume, and replay without repeated input |
@@ -57,10 +58,10 @@ Date: **2026-10-24**. Environment: Linux sandbox, Python 3.11.2, SQLite 3.40.1 w
 | Memory add/search | Passed |
 | Backup create/verify/restore | Passed, including lifeline and corruption rejection |
 | Plugin register/enable/run | Passed; governed note written in the confined workspace |
-| Mocked provider worker/reviewer | Passed; bounded calls and durable evidence |
+| Mocked provider worker/reviewer | Passed; bounded calls and durable evidence; malformed candidates/content/usage/token counts fail as bounded `invalid_response` errors |
 | Official MCP 2.3.0 stdio integration | Passed; initialize, discover 3 tools, durable task add, memory search, clean shutdown |
-| Wheel build and clean no-dependency install | Passed; 3 packaged dashboard assets, 2 blueprints, 10 governed tools, offline DAG 2/2, company DAG 3/3 with two fake-transport calls and memory/privacy exclusion, real AST map, pending/approved experience, 8/8 evaluation, baseline gate, and truthful capability states |
-| Benchmark | 5/5 succeeded, 0 failed, 0 model calls; 259.548 tasks/s and 29,827,072-byte process peak RSS on this host |
+| Wheel build and clean no-dependency install | Passed; 3 packaged dashboard assets, 2 blueprints, 11 governed tools, offline DAG 2/2, company DAG 3/3 with two fake-transport calls, two real startup tool calls and memory/privacy exclusion, real AST map, pending/approved experience, 8/8 evaluation, baseline gate, and truthful capability states |
+| Benchmark | 5/5 succeeded, 0 failed, 0 model calls; 315.086 tasks/s and 29,810,688-byte process peak RSS on this host |
 | Read-only self-update check | Passed against the trusted repository origin; no source mutation |
 
 `pip-audit` skips the local `ultimate-agent-factory` project because it is not a PyPI dependency; its direct core dependency set is empty. The final audit environment also contained keyring 25.7.0, Playwright 1.64.1, PyAutoGUI 0.9.54, and their resolved transitive packages. Audit results cover installed third-party packages at the time of execution and are not a permanent vulnerability guarantee. Separate metadata review confirmed MIT keyring, Apache-2.0 Playwright, BSD PyAutoGUI, and GPLv3+ `mouseinfo`; this is not a complete redistribution legal review.
@@ -74,6 +75,8 @@ The tests exercise:
 - Snapshot hash/corruption checks, confirmed restore, and pre-restore lifeline.
 - Task deduplication/conflicts, dependencies, transitions, cancellation, checkpoints, and timeline.
 - Offline orchestration, bounded cloud worker/reviewer flows, one revision, schema enforcement, offline resume, model budgets, and daily provider budgets enforced across transient retries.
+- Company startup v1/v2 coexistence, real five-check acceptance, two startup tool invocations, and blank-brief readiness rejection independent of a false reviewer pass.
+- Lightweight/default and full computer-use bootstrap command plans, no default Chromium invocation, automatic free-port selection, and malformed provider-response normalization.
 - Immutable blueprints, disabled registration, DAG cycles/data-flow validation, atomic creation, nested templates, idempotent start, materialization tamper checks, failure blocking, approval pause, and interruption recovery.
 - Governed ReAct typed/final decisions, separate observations, disallowed tools, independent decision/tool budgets, structured output, hostile observations, and R3 decision replay.
 - Offline/model evaluation cases, expected safe failures, development/held-out metrics, resource evidence, malformed/secret definitions, identical-digest baselines, and deliberate regression detection.

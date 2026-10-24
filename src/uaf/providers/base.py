@@ -6,7 +6,7 @@ from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from typing import Any, Protocol
 
-from uaf.errors import ValidationError
+from uaf.errors import ProviderError, ValidationError
 from uaf.util import estimate_tokens
 
 
@@ -70,6 +70,17 @@ class ProviderAdapter(Protocol):
 
 def estimate_request_tokens(request: GenerateRequest) -> int:
     return estimate_tokens(request.system) + estimate_tokens(request.prompt)
+
+
+def parse_token_count(value: Any, *, default: int, provider: str, field: str) -> int:
+    if value is None:
+        return default
+    if not isinstance(value, int) or isinstance(value, bool) or not 0 <= value <= 1_000_000_000:
+        raise ProviderError(
+            f"{provider} returned an invalid {field} token count",
+            kind="invalid_response",
+        )
+    return value
 
 
 def ensure_model_name(model: str) -> None:

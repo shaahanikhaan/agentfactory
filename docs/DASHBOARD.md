@@ -13,9 +13,9 @@ The dashboard does not promise error-free cloud operation, continuous listening,
 
 1. Extract the reviewed UAF source ZIP or open the reviewed checkout. The directory must contain `Start-UAF.cmd`, `pyproject.toml`, `src`, and `scripts`.
 2. Double-click **`Start-UAF.cmd`**.
-3. The launcher uses Python 3.11+, creates a repository-local `.venv`, installs bounded/pinned bootstrap packages and the `computer-use` extra, prepares optional Chromium, and runs the real `init` and `doctor` gates. First-run downloads require internet. No administrator shell, global package install, or PowerShell execution-policy change is used.
-4. A required bootstrap/doctor failure stops startup with a recovery message. Optional Chromium failure leaves the normal-browser dashboard available and retries Chromium on a later launch.
-5. The exact private dashboard URL opens in the normal browser. Keep its `#token=...` fragment private. If browser opening fails, copy the exact URL printed in the launcher window.
+3. The launcher uses Python 3.11+, creates a repository-local `.venv`, installs bounded/pinned bootstrap packages plus only the lightweight `setup` extra for the approved OS credential vault, and runs the real `init` and `doctor` gates. It does not download Chromium, Playwright, or PyAutoGUI by default. First-run downloads require internet. No administrator shell, global package install, or PowerShell execution-policy change is used.
+4. A required bootstrap/doctor failure stops startup with a recovery message. Full optional browser/desktop dependencies and Chromium are installed only when `Start-UAF.cmd --with-computer-use` is explicitly run; their optional Chromium failure leaves the normal-browser dashboard available.
+5. The exact private dashboard URL opens in the normal browser on an automatically selected free loopback port. Keep its `#token=...` fragment private. If browser opening fails, copy the exact URL printed in the launcher window.
 6. On the literal loopback page (`127.0.0.1` or `::1`), paste one Gemini API key. Review the visible official free-tier confirmation and select **Confirm free tier, save key & start**.
 
 The API key is never a launcher argument, voice command, config value, browser-storage value, or setup-file value.
@@ -43,10 +43,10 @@ After the explicit button action, one bounded setup operation performs:
 3. Explicit user free-tier attestation against the linked official pricing page, with the current date. Discovery alone is never treated as free-tier proof. Newly discovered or paid-only models are not silently added.
 4. Existing approved OS-vault onboarding with rollback on config-write failure. Other AI provider keys are not required.
 5. One explicit bounded live diagnostic. Gemini 3.8 uses `thinkingLevel=low` and a 256-token combined thinking/output ceiling; normal agent reasoning is unchanged.
-6. The existing durable `company-startup@1` factory DAG with idempotency key `dashboard-company-start-v2`:
+6. The durable `company-startup@2` factory DAG with idempotency key `dashboard-company-start-v3` (the previous blueprint/run history is preserved on upgrades):
    - **Reliability:** real bounded local workspace inventory; zero model calls.
    - **Orchestration:** one bounded model worker plus one independent model reviewer for a startup brief; two model calls. Their context contains fixed privacy instructions and the goal, never inventory entries, workspace filenames/contents, credentials, or memory.
-   - **Quality:** a real deterministic durable acceptance record; zero model calls.
+   - **Quality:** the governed R0 `factory.accept_startup` tool checks both upstream succeeded states, inventory contract and ≤200 entries, a non-empty ≤2,000-character brief, and an actual independent reviewer `pass`; zero model calls. Any failed check prevents readiness instead of recording generic smoke success.
 
 The first complete startup therefore has a hard bound of one diagnostic plus two DAG model calls, executed serially. Department cards show `last_execution` only for actual live-readiness/inventory/operations-brief/acceptance-record evidence. The default UI hides departments without execution evidence; an opt-in toggle reveals other capability/readiness states without claiming autonomous parallel staff.
 
@@ -126,6 +126,6 @@ Keep the default serial behavior, close unnecessary applications/browser tabs, a
 
 ## Verification
 
-`tests/test_dashboard.py` exercises real loopback HTTP requests with fake official/provider/vault drivers: Host/capability/Origin/body boundaries, one-key setup, selected-model low-thinking probes, no secret in responses/config/audit, live failure without readiness, stale health, non-loopback credential/start denial, failed-doctor-check visibility, and idempotent three-step DAG success/replay with two model calls, per-department evidence, proof that a private inventory filename/content stays out of the worker prompt, and explicit/idempotent loopback-only experience approval with no voice authority. `tests/test_experience.py` covers capture, sensitive-skip, privacy deletion, and approved recall. `tests/test_bootstrap.py` checks bounded local command plans, corrupt-marker recovery, optional-installer failure tolerance, and doctor-failure launch blocking; the CLI suite separately proves failed doctor checks return a nonzero process status.
+`tests/test_dashboard.py` exercises real loopback HTTP requests with fake official/provider/vault drivers: Host/capability/Origin/body boundaries, one-key setup, selected-model low-thinking probes, no secret in responses/config/audit, live failure without readiness, stale health, non-loopback credential/start denial, failed-doctor-check visibility, and idempotent three-step DAG success/replay with two model calls, per-department evidence, proof that a private inventory filename/content stays out of the worker prompt, and explicit/idempotent loopback-only experience approval with no voice authority. `tests/test_experience.py` covers capture, sensitive-skip, privacy deletion, and approved recall. `tests/test_acceptance.py` proves the five real startup checks, two actual startup tool calls, blueprint-version coexistence, and rejection of a whitespace brief even when a fake reviewer says `pass`. `tests/test_bootstrap.py` checks lightweight default dependencies with no Chromium invocation, automatic free-port launch, bounded local command plans, corrupt-marker recovery, optional-installer failure tolerance, and doctor-failure launch blocking; the CLI suite separately proves failed doctor checks return a nonzero process status.
 
 Real Windows dashboard use, physical microphone recognition, and successful Gemini generation require separate acceptance on the target machine.

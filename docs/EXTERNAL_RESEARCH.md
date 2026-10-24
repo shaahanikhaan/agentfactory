@@ -31,6 +31,16 @@ Accessed **2026-10-24**. This register distinguishes metadata screening from act
 | [AutoGen](https://github.com/microsoft/autogen) — `004749e6b7102c8fd317b9b1499ce5807223c278` | Metadata/README screened only. A second orchestration framework would overlap UAF's durable manager/supervisor/worker/reviewer contracts; GitHub's license metadata alone is not enough for selective file reuse. Not integrated. |
 | [CrewAI](https://github.com/crewAIInc/crewAI) — `38db11e3324fa0e23beb5eecd0d87e8e31ca2bb0` | MIT metadata/README screened only. Role-playing crews do not replace UAF's typed task state, policy, checkpoint, approval, and recovery boundaries. Not integrated. |
 
+## Follow-up screening: lightweight setup and honest readiness
+
+| Project and revision | Evidence inspected | Decision |
+|---|---|---|
+| [keyring](https://github.com/jaraco/keyring) — `566a2c61c8d13961185333370d7ee3a13494246f` | `pyproject.toml` declares MIT and Windows-only `pywin32-ctypes`; `keyring/backends/Windows.py` inspected for the real Credential Manager backend | **Retain the existing reviewed dependency, not a custom secret store.** The default launcher now installs only UAF's `setup` extra instead of Playwright/PyAutoGUI/Chromium. No keyring source was copied. |
+| [uv](https://github.com/astral-sh/uv) — `6fe4f0f5cfa8322e97af4479cbfb3d53a3ce9596` | Apache-2.0 metadata and README sections for standalone installers, Windows, tools, and Python-version management | **Useful installation precedent, no binary/runtime integration.** Adding a second native package manager and another update channel would enlarge the trust/resource surface. The launcher keeps bounded `pip` commands in a repository-local venv. |
+| [PyInstaller](https://github.com/pyinstaller/pyinstaller) — `b206650681ecc827b6870c29d3196dfd1a1d0a08` | Repository metadata and `COPYING.txt`, including GPLv2-or-later terms and the bootloader exception | **No executable bundle in this round.** A native Windows bundle needs Windows build/acceptance, dependency/license review, and a larger artifact; it is not required for the reviewed source ZIP launcher. No claim of a prebuilt offline executable is made. |
+
+The corresponding independent quality review did not import an orchestration framework. UAF's new acceptance gate checks durable upstream evidence directly, and its default startup path removes optional downloads rather than hiding their failures.
+
 ## Implemented from this research round
 
 ### 1. Governed real task experience
@@ -40,7 +50,7 @@ Accessed **2026-10-24**. This register distinguishes metadata screening from act
 - Credential-like goals/content are skipped; model output is never captured. Records start **pending**.
 - Only human-approved, non-private UAF task outcomes are recalled, bounded and wrapped as untrusted historical data. Agents cannot approve their own experience.
 - Dashboard review is loopback-only, explicitly confirmed, idempotent, and unavailable to voice commands. Non-loopback responses omit experience content.
-- `company-startup@1` explicitly disables memory recall so its privacy-safe startup prompt remains free of memory, workspace names, and workspace contents.
+- `company-startup@2` explicitly disables memory recall so its privacy-safe startup prompt remains free of memory, workspace names, and workspace contents.
 - Evidence: `tests/test_experience.py`, dashboard HTTP tests, migration/privacy/replay tests.
 
 ### 2. Real Python repository map
@@ -56,6 +66,20 @@ Accessed **2026-10-24**. This register distinguishes metadata screening from act
 - Default department view hides unused capabilities and shows only actual execution evidence. The complete capability map remains opt-in.
 - Run activity comes from durable factory steps with real task IDs/states/error codes.
 - No fake progress, autonomous staff claims, remote memory approval, or additional runtime dependency was added.
+
+### 4. Lightweight one-click startup
+
+- Default `Start-UAF.cmd` bootstraps only the dashboard and approved OS-vault dependency; Chromium, Playwright, and PyAutoGUI require an explicit `--with-computer-use` flag.
+- Port `0` lets the OS select an available loopback port, avoiding a fixed-port conflict while retaining the exact per-launch private URL.
+- Required init/doctor gates still fail closed. Optional full computer-use installation does not change voice, provider, approval, or readiness authority.
+
+### 5. Real startup quality acceptance
+
+- `factory.accept_startup` is an eleventh governed R0 tool, not a generic smoke success or another model persona.
+- It checks upstream succeeded states, inventory shape, at most 200 entries, a non-empty bounded brief, and the actual independent reviewer verdict. Output contains counts/checks/hash evidence, not copied filenames or a semantic-quality guarantee.
+- `company-startup@2` uses this tool through the ordinary schema/policy/checkpoint path. A blank brief fails startup even if a test reviewer claims `pass`.
+- Version 2 and a new dashboard idempotency key preserve existing version-1 registrations and run history instead of causing an immutable-checksum upgrade failure.
+- Evidence: `tests/test_acceptance.py`, dashboard startup tests, and clean-wheel company DAG checks.
 
 ## Deliberately not implemented
 

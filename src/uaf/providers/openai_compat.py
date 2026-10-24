@@ -11,6 +11,7 @@ from uaf.providers.base import (
     Health,
     ModelSpec,
     estimate_request_tokens,
+    parse_token_count,
 )
 from uaf.providers.http import JSONHttpClient
 from uaf.util import utc_now
@@ -80,12 +81,24 @@ class OpenAICompatibleAdapter:
                 f"{self.name} returned empty/non-text content", kind="invalid_response"
             )
         usage = response.get("usage", {})
+        if not isinstance(usage, dict):
+            raise ProviderError(f"{self.name} returned invalid usage", kind="invalid_response")
         return GenerateResponse(
             text=text,
             provider=self.name,
             model=spec.model,
-            input_tokens=int(usage.get("prompt_tokens", estimate_request_tokens(request))),
-            output_tokens=int(usage.get("completion_tokens", 0)),
+            input_tokens=parse_token_count(
+                usage.get("prompt_tokens"),
+                default=estimate_request_tokens(request),
+                provider=self.name,
+                field="input",
+            ),
+            output_tokens=parse_token_count(
+                usage.get("completion_tokens"),
+                default=0,
+                provider=self.name,
+                field="output",
+            ),
             latency_ms=int((time.monotonic() - started) * 1000),
             usage={"total_tokens": usage.get("total_tokens")},
         )
